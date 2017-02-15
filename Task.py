@@ -1,0 +1,3 @@
+class Task(str):
+	pass
+		

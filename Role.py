@@ -1,0 +1,2 @@
+class Role(str):
+	pass
