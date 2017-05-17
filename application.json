@@ -1,0 +1,1 @@
+{"Basic Workflow Definition":"A workflow to handle PG admissions","Tasks":{"t1":{"task_id":1,"owner":"user","PSA":"insert.py","pre_tasks":{"t6,t7"},"post_tasks":{"t8,t9"},"input_para":{}, "output_para":{},"events":}}}
