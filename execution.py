@@ -42,10 +42,9 @@ class Execute:
 		mod,c,f = get_attribute_value('Tasks',task_id,'agent')
 		agent = __import__(module)
 		i = getattr(agent,c)()
-		self.swe, events = getattr(i,f)(self.ew_eid,self.sw_eid,self.swe)
-		update_task(action)
-		update_states(ew_id,sw_id)
-		return events
+		self.swe = getattr(i,f)(self.sw_eid,self.swe)
+		return update_states(ew_id,action)
+
 
 	def initialize(self):
 		tasks = ew['tasks']
@@ -80,103 +79,49 @@ class Execute:
 			return True
 		return False
 
+
 	def create_templates(self):
-		d = {}
-		d['Activities'] = ["Description","Type","Task_list","status","input_para","output_para",\
-		"finished_list","executing_list"]
-		d['Tasks'] = ["activity","owner","status","pre_tasks","post_tasks","input_para","output_para","PSA","Events"]
-		d['Events'] = ["activity","Tasks","affected_object","PSA","Events","condition"]
-		d['Conditions'] = ["activity","owner","Event"]
-		d['Actions'] = ["activity","event_condition","task","object_affected"]
-
-
-		for key, value in d.items():
-			create_table(key,value)
-
-
-	def create_table(self,table_name,attribs):
 		conn = self.conn
 		cursor = conn.cursor()
-		flag = 0
-		if table_name == "Activities":
-			flag = 1
+		
+		q = []
+		q1 = "create table E_Activities (ew_id int not null auto increment, sw_id int, description varchar(300),\
+		task_list varchar(500), status varchar(100),executing_tasks varchar(50),\
+		finished_tasks varchar(400), primary key(ew_id))"
 
-		dtypes = {}
-		for a in attribs:
-			if a == 'id':
-				continue
-			else:
-				dtypes[a] = "varchar(200)"
+		q2 = "create table S_Activities (sw_id int not null auto increment, task_list varchar(500),\
+		status varchar(400),executing_tasks varchar(50), finished_tasks varchar(400), primary key(sw_id))"
 
-		s = ""
-		for key,value in dtypes.items():
-			s += key + " " + value+","
+		q3 = "create table Tasks (tid int not null auto increment, wid int, status varchar(100),\
+		IP varchar(200),OP varchar(200), IE varchar(400),OE varchar(400), agent varchar(500),\
+		PreT varchar(300), PosT varchar(300), primary key(tid)"
 
-		if flag == 1:
-			s += "sw_id int,"
-		else:
-			s += "sw_id int, ew_id int,"
+		q4 = "create table Events (eid int not null auto increment, tid int, cid int, affected_object varchar(400),\
+		primary key(eid))"
 
-		q = "create table "+table_name+" (id int not null auto increment," +s+" primary key(id))"
+		q4 = "Create table Conditions (cid int not null auto increment, aid int,\
+		condition varchar(400), owner varchar(300), primary key(cid))"
 	
-		try:
-	        print("Creating table "+ table_name, end='')
-	        cursor.execute(ddl)
-	    except mysql.connector.Error as err:
-	        if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-	            print("already exists.")
-	        else:
-	            print(err.msg)
-	    else:
-	        print("OK")
+		q5 = "Create table Actions (aid int not null auto increment, tid int, primary key(aid)"
+		q = [q1,q2,q3,q4,q5]
+		for query in q:
+			try:
+		        print("Creating tables "+ table_name, end='')
+		        cursor.execute(query)
+		    except mysql.connector.Error as err:
+		        if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+		            print("already exists.")
+		        else:
+		            print(err.msg)
+		    else:
+		        print("OK")
 
 
 	def insert_data(self,ew,sw):
 		conn = self.conn
 		cursor = conn.cursor()
 
-		print "Populating tasks"
 
-		tables = ["Tasks","Events","Conditions","Actions"]
-		d = {}
-		for w in [ew,sw]:
-			x = 0
-			for table_name in tables:
-				print "Populating "+table_name
-				a = json.load(w[table_name])
-				s = ""
-				k = ""
-				for key,value in a.items():
-					k += key+","
-					s += value+","
-				if x == 0:
-					k = "ew_id"
-					s += ew_id
-				else:
-					k = "sw_id,ew_id"
-					s += sw_id + ","+ ew_id
-				q = "insert into "+ table_name +"("+k+") values ("+s+")"
-				try:
-					cursor.execute(q)
-				except:
-					print "Some error!!!!!"
-				if x == 0:
-					t = ""
-				else:
-					t = "sw_id="+self.sw_id+" and"
-
-				q = "select id from "+table_name+" where "+t+" ew_id="+self.ew_id
-				l = []
-				for c in cursor:
-					l.append(c)
-				d[table_name] = l
-			x += 1
-
-		print "Populating Activities table"
-
-		k = "Type,Description,Task_List,status,input_para, output_para"
-		s = json.load["Activities"]				#edit this part!!!
-		q = "insert into Activities ("+k+") values ("+s+")"
 
 
 
@@ -190,8 +135,6 @@ class Execute:
 		for r in cursor:
 			return r
 		
-	def update_states(self,ew_id,sw_id):
-		pass
+	def update_states(self,ew_id,tid):
+		cursor = self.conn.cursor()
 
-	def update_task(self,id):
-		pass
