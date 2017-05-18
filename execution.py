@@ -41,9 +41,11 @@ class Execute:
 		task_id = get_attribute_value('Actions',action,'task_id')
 		mod,c,f = get_attribute_value('Tasks',task_id,'agent')
 		agent = __import__(module)
+		
+		update_states(ew_id,action,'executing')
 		i = getattr(agent,c)()
 		self.swe = getattr(i,f)(self.sw_eid,self.swe)
-		return update_states(ew_id,action)
+		return update_states(ew_id,action,'finished')
 
 
 	def initialize(self):
@@ -85,25 +87,23 @@ class Execute:
 		cursor = conn.cursor()
 		
 		q = []
-		q1 = "create table E_Activities (ew_id int not null auto increment, sw_id int, description varchar(300),\
-		task_list varchar(500), status varchar(100),executing_tasks varchar(50),\
-		finished_tasks varchar(400), primary key(ew_id))"
+		q1 = "create table E_Activities (ew_id int not null auto increment, sw_id int, description varchar(300),task_list varchar(500), status varchar(100),executing_tasks varchar(50),finished_tasks varchar(400), primary key(ew_id))"
 
 		q2 = "create table S_Activities (sw_id int not null auto increment, task_list varchar(500),\
 		status varchar(400),executing_tasks varchar(50), finished_tasks varchar(400), primary key(sw_id))"
 
-		q3 = "create table Tasks (tid int not null auto increment, wid int, status varchar(100),\
+		q3 = "create table Tasks (tid int not null auto increment, wid int,owner varchar(400), status varchar(100),\
 		IP varchar(200),OP varchar(200), IE varchar(400),OE varchar(400), agent varchar(500),\
 		PreT varchar(300), PosT varchar(300), primary key(tid)"
 
 		q4 = "create table Events (eid int not null auto increment, tid int, cid int, affected_object varchar(400),\
 		primary key(eid))"
 
-		q4 = "Create table Conditions (cid int not null auto increment, aid int,\
+		q5 = "Create table Conditions (cid int not null auto increment, aid int,\
 		condition varchar(400), owner varchar(300), primary key(cid))"
 	
-		q5 = "Create table Actions (aid int not null auto increment, tid int, primary key(aid)"
-		q = [q1,q2,q3,q4,q5]
+		q6 = "Create table Actions (aid int not null auto increment, events varchar(500), primary key(aid)"
+		q = [q1,q2,q3,q4,q5,q6]
 		for query in q:
 			try:
 		        print("Creating tables "+ table_name, end='')
@@ -135,6 +135,33 @@ class Execute:
 		for r in cursor:
 			return r
 		
-	def update_states(self,ew_id,tid):
+	def update_states(self,ew_id,tid,state):
 		cursor = self.conn.cursor()
+		q = "update Tasks Set status="+status+" where ew_id="+ew_id+" and tid="+tid
+		try:
+			cursor.execute(q)
+			cursor.execute("select task_list from E_Activities where ew_id="+ew_id)
+			for c in cursor:
+				t = c[0]
+				break
+			t = t.strip().split(',').remove(tid)
+			l = t[0]
+			s = str(l)
+			for task in t[1:]:
+				s += ','+str(task)
+			try:
+				cursor.execute("update E_Activities set task_list="+s+" where ew_id="+ew_id)
+			except:
+				print "Some error while update task list in execution workflow"
+			if state == 'finished':
+				try:
+					cursor.execute('select OE from Tasks where tid='+tid)
+					for c in cursor:
+						return c[0]
+				except:
+					print "Some error while getting Output events of the task"
+			else:
+				return ""
+		except:
+			print "Some error while updating status of execution workflow"
 
