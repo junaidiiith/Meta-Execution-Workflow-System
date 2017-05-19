@@ -1,1 +1,20 @@
-{"Basic Workflow Definition":"A workflow to handle PG admissions","Tasks":{"t1":{"task_id":1,"owner":"user","PSA":"insert.py","pre_tasks":{"t6,t7"},"post_tasks":{"t8,t9"},"input_para":{}, "output_para":{},"events":}}}
+{"Basic Workflow Definition":"A workflow to handle PG admissions","Tasks":{"t1":{"task_id":1,
+"owner":"user","PSA":"insert.py","pre_tasks":{"t6,t7"},"post_tasks":{"t8,t9"},"input_para":{},
+ "output_para":{},"events":}}}
+
+
+
+conditions json          {"con1":{"cid":"c1","des":"cond1"},"cond2":{"cid": "c2","des":"cond2"}, "cond3":{"cid":"c3","des":"cond3"}}
+
+event json    {"event1":{"eid":"e1","conds":"c1&c3","aid":"a3","aff_obj":"affected object"},"event2":{"eid":"e2","conds":"c1&c3","aid":"a2","aff_obj":"affected object2"}}
+
+
+action json  {"act1":{"aid":"a1", "eid":"e1"}, "act2":{"aid":"a2", "eid":"e2"},"act3":{"aid":"a3", "eid":"e3"}}
+
+task json {"task1":{"tid":"t1", "wid":"w1", "IP":"IP1", "OP":"OP1", "IE":"IE1","OE": "OE1","agent":"Ag1","PreT":"PRT1","PstT":"PST1"},
+"task2":{"tid":"t2", "wid":"w2", "IP":"IP2", "OP":"OP2", "IE":"IE2","OE": "OE2","agent":"Ag2","PreT":"PRT2","PstT":"PST2"}}
+
+
+
+
+

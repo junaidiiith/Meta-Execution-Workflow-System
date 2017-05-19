@@ -96,7 +96,6 @@ class Execute:
 
 		q4 = "create table Tasks (tid int not null auto increment, wid int, status varchar(100),IP varchar(200),OP varchar(200), IE varchar(400),OE varchar(400), agent varchar(500), PreT varchar(300), PosT varchar(300), primary key(tid)"
 
-
 		q5 = "create table E_Activities (ew_id int not null auto increment, sw_id int, description varchar(300),task_list varchar(500), status varchar(100),executing_tasks varchar(50),finished_tasks varchar(400), primary key(ew_id))"
 
 		q6 = "create table S_Activities (sw_id int not null auto increment, task_list varchar(500),status varchar(400),executing_tasks varchar(50), finished_tasks varchar(400), primary key(sw_id))"
