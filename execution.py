@@ -1,5 +1,7 @@
 import json
 import mysql.connector
+from collections import namedtuple
+
 
 
 class Execute:
@@ -85,25 +87,22 @@ class Execute:
 		cursor = conn.cursor()
 		
 		q = []
-		q1 = "create table E_Activities (ew_id int not null auto increment, sw_id int, description varchar(300),\
-		task_list varchar(500), status varchar(100),executing_tasks varchar(50),\
-		finished_tasks varchar(400), primary key(ew_id))"
 
-		q2 = "create table S_Activities (sw_id int not null auto increment, task_list varchar(500),\
-		status varchar(400),executing_tasks varchar(50), finished_tasks varchar(400), primary key(sw_id))"
+		q1 = "Create table Conditions (cid int not null auto increment, description varchar(400), primary key(cid))"
 
-		q3 = "create table Tasks (tid int not null auto increment, wid int, status varchar(100),\
-		IP varchar(200),OP varchar(200), IE varchar(400),OE varchar(400), agent varchar(500),\
-		PreT varchar(300), PosT varchar(300), primary key(tid)"
+		q2 = "create table Events (eid int not null auto increment, conditions varchar(400), aid int null, affected_object varchar(400),primary key(eid))"
 
-		q4 = "create table Events (eid int not null auto increment, tid int, cid int, affected_object varchar(400),\
-		primary key(eid))"
+		q3 = "create table Actions (aid int not null auto increment, eid int, primary key(aid))"
 
-		q4 = "Create table Conditions (cid int not null auto increment, aid int,\
-		condition varchar(400), owner varchar(300), primary key(cid))"
-	
-		q5 = "Create table Actions (aid int not null auto increment, tid int, primary key(aid)"
-		q = [q1,q2,q3,q4,q5]
+		q4 = "create table Tasks (tid int not null auto increment, wid int, status varchar(100),IP varchar(200),OP varchar(200), IE varchar(400),OE varchar(400), agent varchar(500), PreT varchar(300), PosT varchar(300), primary key(tid)"
+
+
+		q5 = "create table E_Activities (ew_id int not null auto increment, sw_id int, description varchar(300),task_list varchar(500), status varchar(100),executing_tasks varchar(50),finished_tasks varchar(400), primary key(ew_id))"
+
+		q6 = "create table S_Activities (sw_id int not null auto increment, task_list varchar(500),status varchar(400),executing_tasks varchar(50), finished_tasks varchar(400), primary key(sw_id))"
+
+
+		q = [q1,q2,q3,q4,q5,q6]
 		for query in q:
 			try:
 		        print("Creating tables "+ table_name, end='')
@@ -120,6 +119,21 @@ class Execute:
 	def insert_data(self,ew,sw):
 		conn = self.conn
 		cursor = conn.cursor()
+
+		tables = ["Tasks","Events","Conditions","Actions"]
+		d={}
+		for table_name in tables:
+			a=json.load(w[table_name])
+			k=""
+			s=""
+			for key, value in a.items():
+					k += key+","
+					s += value+","
+					q = "insert into "+ table_name +"("+k+") values ("+s+")"
+					try:
+						cursor.execute(q)
+					except:
+						print "ERROR!!! CAN NOT INSERT DATA"
 
 
 
