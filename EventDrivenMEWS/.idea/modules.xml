@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/MEWS.iml" filepath="$PROJECT_DIR$/.idea/MEWS.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/EventDrivenMEWS.iml" filepath="$PROJECT_DIR$/.idea/EventDrivenMEWS.iml" />
     </modules>
   </component>
 </project>
