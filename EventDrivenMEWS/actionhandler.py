@@ -24,13 +24,15 @@ class ActionHandler:
         #add task to the worklist of the owner of the task
         pass
 
-    def execute(self,*args, **kwargs):
-        self.action = kwargs['action']
+    def execute(self,action,callback,*args, **kwargs):
+
+        self.action = action
         task = self.action.task
         self.add_to_worklist(task)
         task.state = TaskStates.READY
         # code to execute the action i.e handler of action.task
         ##
+        callback(*args,**kwargs)
         task.state = TaskStates.RUNNING
         ##
         ##
@@ -42,6 +44,6 @@ class ActionHandler:
             if eval(rule.condition):
                 self.register_event(self.action, event)
 
-    def raise_event(self,*args,**kwargs):
-        for event, callback in self.events[self.action]:
-            callback(*args,**kwargs)
+    # def raise_event(self,*args,**kwargs):
+    #     for event, callback in self.events[self.action]:
+    #         callback(*args,**kwargs)

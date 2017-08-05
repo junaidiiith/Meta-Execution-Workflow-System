@@ -19,4 +19,4 @@ class EventHandler:
 
     def fire(self,event,*args,**kwargs):
         for action,callback in self.get_action(event):
-            callback(*args,**kwargs)  #callback must have a keyword 'action' having the action as the parameter
+            callback(action, action.task.handler, *args,**kwargs)
