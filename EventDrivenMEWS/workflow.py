@@ -6,12 +6,17 @@ from condition import *
 from eca_rule import ECA
 
 
-class Workflow:
-    __slots__ = ['id', 'title', 'events', 'actions', 'conditions', 'tasks','graph', 'eca_rules','roles','resources']
 
-    def __init__(self,*args,**kwargs):
+class Workflow:
+    __slots__ = ['id', 'title', 'type','description', 'events', 'actions', 'conditions', 'tasks','graph', 'eca_rules','roles','resources']
+
+    def __init__(self,title=None, type=None,description=None,*args,**kwargs):
         self.id = uuid.uuid4()
-        # self.title = kwargs['title']
+        self.title = title
+        self.type = type
+        if not description:
+            description = input("Enter the description of the workflow")
+        self.description = description
         self.actions = set()
         self.events = set()
         self.conditions = set()
@@ -57,23 +62,25 @@ class Workflow:
         graph = {}
         temp = {}
         print("These are the tasks. Select the output tasks of each task")
-        for i,task in enumerate(tasks,1):
-            print(i,")Task name is: ", task.name)
-            temp[i] = task.id
+        for i, tsk in enumerate(tasks,1):
+            print(i,")Task name is: ", tsk.name)
+            temp[i] = tsk
 
         for t in self.tasks:
             while True:
                 i = input("Enter the index of output task of "+t.name)
                 typ = input("Choose the type of condition\n 1) Arithmetic 2)Database 3) External 4) System")
                 exp = input("Enter the expression of condition for this task to be executed in the format"
-                            "Operand(space)Operator(space)Constant (For Arithmetic)")
+                            "Operand(space)Operator(space)Constant (For Arithmetic) ")
                 c = {'type':typ, 'expression': exp }
-                t.output_tasks.add(temp[i],c)
+                tsk = temp[i]
+                t.output_tasks.add((c, tsk.name, tsk.id))   #Linking output tasks and corr. conditions to task
+                t.action.event_conditions((c, tsk.action.id, tsk.action.description))  #Linking output actions and corr. conditions to task
                 print("Task and condition added")
                 i = input("press [Enter] to move on to the next task or 1 to add more output tasks")
                 if not len(i):
                     break
-            graph[t] = t.output_tasks
+            graph[(t.id, t.name)] = t.output_tasks
         self.graph = graph
         self.create_events_condition_action_rules()
 
@@ -89,9 +96,31 @@ class Workflow:
         self.graph = data['graph']
         self.create_events_condition_action_rules()
 
-    def create_events_condition_action_rules(self):
+    def put(self):
+        data = dict()
+        data['title'] = self.title
+        data['type'] = self.type
+        data['description'] = self.description
+        tasks = []
+        for task in self.tasks:
+          tasks.append(task.put())
 
+        data['tasks'] = tasks
+        data['graph'] = self.graph
+
+        return data
+
+    def to_json(self, data=None):
+        if not data:
+            data = self.put()
+
+        with open(self.title+'.json', 'w') as fp:
+            json.dump(data, fp)
+
+    def create_events_condition_action_rules(self):
         for t in self.tasks:
+            t.event.set_task(t)
+            t.action.set_task(t)
             self.events.add(t.event)
             self.actions.add(t.action)
             for o in t.output_tasks:
@@ -107,3 +136,8 @@ class Workflow:
                     cond = Condition(tsk.event.id)
                 self.conditions.add(cond)
                 self.eca_rules.append(ECA(tsk.event,cond,tsk.action))
+        f = dict()
+        for eca in self.eca_rules:
+            f[eca.id] = eca.put()
+        with open(self.title+'_eca.json', 'w') as fp:
+            json.dump(f, fp)

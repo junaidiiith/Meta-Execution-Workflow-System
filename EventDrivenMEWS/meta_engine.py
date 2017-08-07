@@ -7,13 +7,8 @@ class MetaEngine:
         self.mw = mw
         self.uw = uw
 
-        self.mEHandler = EventHandler()
-        self.uEHandler = EventHandler()
-
-        self.mstart = self.get_start_event(mw)
-        self.ustart = self.get_start_event(uw)
-
-        self.mEHandler.add_event(self.mstart)
+        self.mEHandler = EventHandler(self.get_start_event(self.mw))
+        self.uEHandler = EventHandler(self.get_start_event(self.uw))
 
     def get_start_event(self,w):
         for event in w.events:
@@ -22,11 +17,9 @@ class MetaEngine:
         return None
 
     def execute(self):
-        acts = self.mEHandler.actions
-        me = self.mstart
-        while len(acts):
+        me = self.mEHandler.actions.keys()
+        while len(me):
             for eve in me:
                 self.mEHandler.register_action(eve, eve.task.action, eve.task.handler)
                 self.mEHandler.fire(eve,ueh=self.uEHandler, uw = self.uw )
-            acts = self.mEHandler.actions
             me = self.mEHandler.actions.keys()

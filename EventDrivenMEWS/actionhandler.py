@@ -32,7 +32,12 @@ class ActionHandler:
         task.state = TaskStates.READY
         # code to execute the action i.e handler of action.task
         ##
-        callback(*args,**kwargs)
+        data = callback(*args,**kwargs)
+
+        # for k,v in data:
+        #     self.action.task.data[k] = v    #Adding the output of the task to the task data dictionary
+        self.action.task.data['output'] = data
+
         task.state = TaskStates.RUNNING
         ##
         ##
@@ -43,7 +48,3 @@ class ActionHandler:
             rule = self.get_rule(event)
             if eval(rule.condition):
                 self.register_event(self.action, event)
-
-    # def raise_event(self,*args,**kwargs):
-    #     for event, callback in self.events[self.action]:
-    #         callback(*args,**kwargs)

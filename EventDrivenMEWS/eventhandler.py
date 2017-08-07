@@ -1,4 +1,6 @@
 from actionhandler import ActionHandler
+
+
 class EventHandler:
     def __init__(self, event):
         self.actions = {}

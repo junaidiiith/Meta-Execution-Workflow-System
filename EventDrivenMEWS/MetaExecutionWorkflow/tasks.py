@@ -4,6 +4,14 @@ class Tasks:
         self.uEHandler = kwargs['ueh']
         self.uw = kwargs['uw']
 
+    def create_workflow_instance(self,*args,**kwargs):
+        self.uEHandler = kwargs['ueh']
+        self.uw = kwargs['uw']
+        data = dict()
+        data['User Workflow Handler'] = kwargs['ueh']
+        data['User Workflow'] = kwargs['ue']
+        return data
+
     def get_a_task(self):
         tasks = []
         for event in self.uEHandler.actions.keys():
@@ -23,13 +31,12 @@ class Tasks:
         return None
 
     def execute(self):
-        acts = self.uEHandler.actions
-        if acts is None:
-            ue = self.get_start_event()
         ue = self.uEHandler.actions.keys()
-        while len(acts):
+        if ue is None:
+            ue = self.get_start_event()
+
+        while len(ue):
             for eve in ue:
                 self.uEHandler.register_action(eve, eve.task.action, eve.task.handler)
                 self.uEHandler.fire(eve)
-            acts = self.uEHandler.actions
             ue = self.uEHandler.actions.keys()

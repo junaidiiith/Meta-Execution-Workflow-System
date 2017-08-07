@@ -10,6 +10,12 @@ class Condition:
         self._description = desc
         self.event_id = event_id
 
+    def put(self):
+        data = {}
+        for attr in dir(self):
+            if not callable(getattr(self, attr)) and not attr.startswith("__"):
+                data[attr] = self.attr
+        return data
 
 class ArithmeticEqualityCondition:
     def __init__(self, operand, operator, constant ):
