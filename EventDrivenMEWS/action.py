@@ -5,10 +5,11 @@ class Action:
     __slots__ =  ['id', '_task', '_description', 'event_conditions']
 
     def __init__(self,task=None):
-        self.id = uuid4()
-        self._description = 'finish ',task.name
+        self.id = str(uuid4())
+        if task:
+            self._description = 'finish ',task.name
         self._task = task
-        self.event_conditions = set()
+        self.event_conditions = list()
 
     @property
     def task(self):
@@ -20,6 +21,10 @@ class Action:
 
     def set_task(self, task):
         self._task = task
+        self.set_description("finish "+task.name)
+
+    def set_description(self, desc):
+            self._description = desc
 
     def put(self):
         data = dict()

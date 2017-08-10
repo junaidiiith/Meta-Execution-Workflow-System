@@ -5,10 +5,14 @@ class Condition:
     __slots__ = ['id', '_description', 'event_id', 'type']
 
     def __init__(self, event_id, desc=None, type=None):
-        self.id = uuid4()
+        self.id = str(uuid4())
         self.type = type
         self._description = desc
         self.event_id = event_id
+
+    @property
+    def description(self):
+        return self._description
 
     def put(self):
         data = {}

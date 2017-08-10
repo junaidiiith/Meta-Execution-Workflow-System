@@ -5,9 +5,10 @@ class Event:
     __slots__ = ['id', '_task', '_description']
 
     def __init__(self, tsk=None):
-        self.id = uuid.uuid4()
+        self.id = str(uuid.uuid4())
         self._task = tsk
-        self._description = "start ",tsk.name
+        if tsk:
+            self._description = 'start ', tsk.name
 
     @property
     def task(self):
@@ -19,6 +20,10 @@ class Event:
 
     def set_task(self, task):
         self._task = task
+        self.set_description("start "+task.name)
+
+    def set_description(self, desc):
+        self._description = desc
 
     def put(self):
         data = dict()
