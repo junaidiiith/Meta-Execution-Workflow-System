@@ -2,7 +2,8 @@ from eventhandler import EventHandler
 from states import TaskStates
 
 class ActionHandler:
-    def __init__(self):
+    def __init__(self,eh):
+        self.eventhandler = eh
         self.events = {}
 
     def get_events(self,action):
@@ -10,7 +11,7 @@ class ActionHandler:
 
     def register_event(self,action, event, callback=None):
         if not callback:
-            callback = getattr(EventHandler,'add_event')
+            callback = getattr(self.eventhandler,'add_event')
         self.get_events(action)[event] = callback
 
     def remove_event(self,action,event):
@@ -24,27 +25,33 @@ class ActionHandler:
         #add task to the worklist of the owner of the task
         pass
 
-    def execute(self,action,callback,*args, **kwargs):
+    def evaluate(self,conditions):
+        for condition in conditions:
+            if not eval(condition):
+                return False
+        return True
+
+    def execute(self,action,*args, **kwargs):
 
         self.action = action
+        assert action.task is not None
         task = self.action.task
         self.add_to_worklist(task)
         task.state = TaskStates.READY
+        mod,cls,func = task.handler
+        cls = __import__(mod,cls)
+        callback = getattr(cls,func)
         # code to execute the action i.e handler of action.task
         ##
-        data = callback(*args,**kwargs)
-
-        # for k,v in data:
-        #     self.action.task.data[k] = v    #Adding the output of the task to the task data dictionary
-        self.action.task.data['output'] = data
 
         task.state = TaskStates.RUNNING
         ##
         ##
+        task.data['output'] = callback(*args, **kwargs)
         task.state = TaskStates.FINISHED
         output_tasks = self.action.task.output_tasks
         for task in output_tasks:
             event = task.event
             rule = self.get_rule(event)
-            if eval(rule.condition):
+            if self.evaluate(rule.conditions):
                 self.register_event(self.action, event)

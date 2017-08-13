@@ -9,9 +9,10 @@ class Task:
     __slots__ = ['id', 'name', 'description', 'handler', 'state', 'owner', 'type', 'manual', 'data', 'output_tasks','event','action']
 
     def __init__(self,name=None,type=None,*args,**kwargs):
-        self.id = str(uuid4())
+
         self.state = TaskStates.NOT_STARTED
-        self.name = name
+        self.name = name.lower()
+        self.id = name
         self.data = {}
         self.owner = None
         self.output_tasks = list()
@@ -19,8 +20,8 @@ class Task:
         self.manual = False
         self.description = ''
         self.type = type
-        self.event = Event()
-        self.action = Action()
+        self.event = Event(self)
+        self.action = Action(self)
 
     def set_values(self,**values):
         self.handler = values['handler']
@@ -32,6 +33,7 @@ class Task:
             pass
         self.manual = values['manual']
         self.description = values['description']
+        self.type = values['type']
 
     def get_id(self):
         return self.id
@@ -84,20 +86,21 @@ class Task:
 def create_task(**values):
 
     try:
-        name = values['name']
+        name = values['name'].lower()
     except:
-        name = input("Enter the name of the task")
+        name = input("Enter the name of the task").lower()
 
     t = Task(name)
     if not values:
         print("Enter the attributes of the task as a tuple")
         values = dict()
-        values['id'] = uuid4()
+        values['id'] = t.name
         values['description'] = input("Enter the description of the task")
         values['type'] = input("Enter the type of  task --> meta/user")
         values['owner'] = input("Enter the owner of the task")
-        values['handler'] = input("Enter the name of class and function to execute task with a space")
+        values['handler'] = tuple(input("Enter the name of module,class and function to execute task with a space or comma").split())
         values['manual'] = input("Enter if the task is manual or not")
+
         data = {}
         while True:
             var = input("Enter the name of the task variable/constant")

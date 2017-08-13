@@ -4,11 +4,11 @@ from uuid import uuid4
 class Action:
     __slots__ =  ['id', '_task', '_description', 'event_conditions']
 
-    def __init__(self,task=None):
-        self.id = str(uuid4())
-        if task:
-            self._description = 'finish ',task.name
-        self._task = task
+    def __init__(self,tsk):
+        self.id = tsk.id
+        if tsk:
+            self._description = 'finish ',tsk.name
+        self._task = tsk
         self.event_conditions = list()
 
     @property

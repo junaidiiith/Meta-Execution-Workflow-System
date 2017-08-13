@@ -4,7 +4,7 @@
       "name": "Start",
       "description": "Start task of a worflow",
       "owner": "Admin",
-      "handler": "MetaExecutionWorkflow.tasks, start",
+      "handler": "MetaExecutionWorkflow.tasks,Tasks,start",
       "manual": "False",
       "type": "meta",
       "data": {
@@ -15,7 +15,7 @@
       "name": "Get a task",
       "description": "Get the next task from the workflow",
       "owner": "Admin",
-      "handler": "MetaExecutionWorkflow.tasks, start",
+      "handler": "MetaExecutionWorkflow.tasks,Tasks, get_a_task",
       "manual": "False",
       "type": "meta",
       "data": {
@@ -25,7 +25,7 @@
       "name": "Check resources",
       "description": "Checking the resources of the task before execution",
       "owner": "Admin",
-      "handler": "MetaExecutionWorkflow.tasks, start",
+      "handler": "MetaExecutionWorkflow.tasks,Tasks, check_resources",
       "manual": "False",
       "type": "meta",
       "data": {
@@ -35,7 +35,7 @@
       "name": "Check task",
       "description": "Checking if the task is end or not",
       "owner": "Admin",
-      "handler": "MetaExecutionWorkflow.tasks, start",
+      "handler": "MetaExecutionWorkflow.tasks,Tasks, check_task",
       "manual": "False",
       "type": "meta",
       "data": {
@@ -46,7 +46,7 @@
       "name": "Execute",
       "description": "Execute the task of a workflow",
       "owner": "Admin",
-      "handler": "MetaExecutionWorkflow.tasks, start",
+      "handler": "MetaExecutionWorkflow.tasks,Tasks, execute",
       "manual": "False",
       "type": "meta",
       "data": {
@@ -56,7 +56,7 @@
       "name": "End",
       "description": "End task of a worflow",
       "owner": "Admin",
-      "handler": "MetaExecutionWorkflow.tasks, start",
+      "handler": "MetaExecutionWorkflow.tasks,Tasks, end",
       "manual": "False",
       "type": "meta",
       "data": {

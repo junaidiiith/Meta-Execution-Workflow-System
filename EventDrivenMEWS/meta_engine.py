@@ -7,8 +7,10 @@ class MetaEngine:
         self.mw = mw
         self.uw = uw
 
-        self.mEHandler = EventHandler(self.get_start_event(self.mw))
-        self.uEHandler = EventHandler(self.get_start_event(self.uw))
+        self.mEHandler = EventHandler()
+        self.mEHandler.add_event(self.get_start_event(self.mw))
+        self.uEHandler = EventHandler()
+        self.uEHandler.add_event(self.get_start_event(self.uw))
 
     def get_start_event(self,w):
         for event in w.events:

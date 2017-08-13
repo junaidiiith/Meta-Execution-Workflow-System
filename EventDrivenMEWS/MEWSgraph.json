@@ -1,0 +1,66 @@
+{
+    "check resources": [
+        {
+            "action": "execute",
+            "conditions": [
+                {
+                    "expression": "resources == available",
+                    "type": "Arithmetic"
+                }
+            ]
+        }
+    ],
+    "check task": [
+        {
+            "action": "check resources",
+            "conditions": [
+                {
+                    "expression": "task == valid",
+                    "type": "Arithmetic"
+                },
+                {
+                    "expression": "task != End",
+                    "type": "Arithmetic"
+                }
+            ]
+        },
+        {
+            "action": "end",
+            "conditions": [
+                {
+                    "expression": "task == End",
+                    "type": "Arithmetic"
+                }
+            ]
+        }
+    ],
+    "end": [],
+    "execute": [
+        {
+            "action": "get a task",
+            "conditions": [
+                {
+                    "expression": "taskstate == finished",
+                    "type": "Arithmetic"
+                }
+            ]
+        }
+    ],
+    "get a task": [
+        {
+            "action": "check task",
+            "conditions": []
+        }
+    ],
+    "start": [
+        {
+            "action": "get a task",
+            "conditions": [
+                {
+                    "expression": "taskstate == started",
+                    "type": "Arithmetic"
+                }
+            ]
+        }
+    ]
+}

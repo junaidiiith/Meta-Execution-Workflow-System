@@ -5,10 +5,10 @@ class ECA:
     __slots__ = ['id','event', 'conditions', 'action']
 
     def __init__(self,event=None,conditions=None,action=None):
-        self.id = uuid4()
-        self.event = (event.id, event._description)
-        self.conditions = conditions
-        self.action = (action.id, action._description)
+        self.id = str(uuid4())
+        self.event = (event.id, event.description)
+        self.conditions = [condition.description for condition in conditions]
+        self.action = (action.id, action.description)
 
     def put(self):
         data = dict()

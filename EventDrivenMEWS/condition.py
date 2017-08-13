@@ -28,21 +28,25 @@ class ArithmeticEqualityCondition:
         self.constant = constant
 
     def get_condition(self):
-        if self.operator.tolower() == "equal" or self.operator == '=' or self.operator == '==':
+        if self.operator.lower() == "equal" or self.operator == '=' or self.operator == '==':
             self.condition = str(self.operand) + " == " + str(self.constant)
-        elif self.operator.tolower() == "lte" or self.operator == '<=':
+        elif self.operator.lower() == "lte" or self.operator == '<=':
             self.condition = str(self.operand) + " <= " + str(self.constant)
 
-        elif self.operator.tolower() == "gte" or self.operator == '>=':
+        elif self.operator.lower() == "gte" or self.operator == '>=':
             self.condition = str(self.operand) + " >= " + str(self.constant)
 
-        elif self.operator.tolower() == "lt" or self.operator == '<':
+        elif self.operator.lower() == "lt" or self.operator == '<':
             self.condition = str(self.operand) + " < " + str(self.constant)
 
-        elif self.operator.tolower() == "g" or self.operator == '>':
+        elif self.operator.lower() == "g" or self.operator == '>':
             self.condition = str(self.operand) + " > " + str(self.constant)
+
+        elif self.operator.lower() == "ne" or self.operator == '!=':
+            self.condition = str(self.operand) + " != " + str(self.constant)
         else:
             self.condition = None
+        return self.condition
 
 
 class Dbcondition:

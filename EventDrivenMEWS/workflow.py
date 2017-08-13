@@ -67,7 +67,7 @@ class Workflow:
             self.tasks[t.id] = t
 
     def create_tasks(self):
-        tasks = set()
+        tasks = dict()
         print("Defining tasks for the workflow")
         while True:
             t = task.create_task()
@@ -78,27 +78,28 @@ class Workflow:
         self.tasks = tasks
         # self.add_to_db()
 
+
     def create_graph(self,graph):
         g = open(graph)
         self.graph = json.load(g)
 
         for k,v in self.graph.items():
-            task = self.tasks[k[0]]
+            tsk = self.tasks[k.lower()]
             out_tasks = []
             event_cond = []
             for value in v:
-                out = self.tasks[value['action'][0]]
-                cond = value['condition']
+                out = self.tasks[value['action']]
+                conds = value['conditions']
                 d = dict()
-                d['action'] = out.id, out.name
-                d['condition'] = cond
+                d['action'] = out.id
+                d['conditions'] = conds
                 out_tasks.append(d)
                 d = dict()
                 d['event'] = out.event.id, out.event.description
-                d['condition'] = cond
+                d['conditions'] = conds
                 event_cond.append(d)
-            task.output_tasks = out_tasks
-            task.action.event_conditions = event_cond
+            tsk.output_tasks = out_tasks
+            tsk.action.event_conditions = event_cond
 
 
     def pretty_print(self, json_dict_or_string, f):
@@ -110,7 +111,7 @@ class Workflow:
                 fl.write(json.dumps(json_dict_or_string, sort_keys=sort, indent=indents))
         pp_json(json_dict_or_string,f)
 
-    def write_to_file(self, f):
+    def write_graph_to_file(self, f):
         graph = dict()
         for k,v in self.graph.items():
             graph[str(k)] = v
@@ -120,7 +121,6 @@ class Workflow:
 
 
     def create_sequence(self, graph=None):
-
         if graph:
             self.create_graph(graph)
         else:
@@ -150,7 +150,7 @@ class Workflow:
                         exp = input("Enter the expression of condition for this task to be executed in the format"
                                 "Operand(space)Operator(space)Constant (For Arithmetic) ")
                         if exp:
-                            c['type'] = c
+                            c['type'] = typ
                             c['expression'] = exp
                         conditions.append(c)
                         typ = input("Choose the type of condition\n 1) Arithmetic 2)Database 3) External 4) System."
@@ -159,22 +159,22 @@ class Workflow:
                     tsk = temp[int(i)]
                     d = dict()
                     d['conditions'] = conditions
-                    d['action'] = tsk.id,tsk.name
+                    d['action'] = tsk.id
                     out_tasks.append(d)
                     d = dict()      #Linking output tasks and corr. conditions to task
                     d['event'] = (tsk.event.id, tsk.event.description)
-                    d['condition'] = conditions
+                    d['conditions'] = conditions
                     event_conditions.append(d)  #Linking output actions and corr. conditions to task
                     # print(d)
                     print("Task and condition added")
                     i = input("press [Enter] to move on to the next task or index of the next output task")
                 t.output_tasks = out_tasks
                 t.action.event_conditions = event_conditions
-                graph[(t.id, t.name)] = t.output_tasks
+                graph[t.name] = t.output_tasks
 
             self.graph = graph
-        self.write_to_file("graph.json")
-        # self.create_events_condition_action_rules()
+        self.write_graph_to_file(self.title+"graph.json")
+        self.create_events_condition_action_rules()
 
     def load(self, json_file):
         f = open(json_file)
@@ -194,7 +194,7 @@ class Workflow:
         data['description'] = self.description
         tasks = []
         for task in self.tasks:
-          tasks.append(task.put())
+            tasks.append(task.put())
 
         data['tasks'] = tasks
         data['graph'] = self.graph
@@ -208,26 +208,31 @@ class Workflow:
         with open(self.title+'.json', 'w') as fp:
             json.dump(data, fp)
 
-    # def create_events_condition_action_rules(self):
+    def create_events_condition_action_rules(self):
         for k,t in self.tasks.items():
             for o in t.output_tasks:
                 conditions = o['conditions']
-                tsk = o['action']
+                tsk = self.tasks[o['action']]
                 conds = []
                 for condition in conditions:
-                    if condition['type'].lower() == 'arithmetic':
+                    tp = condition['type'].lower()
+                    if tp == 'arithmetic':
                         expr = condition['expression'].split()
+
                         a = ArithmeticEqualityCondition(expr[0],expr[1],expr[2])
                         s = a.get_condition()
+
                         cond = Condition(tsk.event.id,s)
                     else:
                         cond = Condition(tsk.event.id)
                     if not cond:
                         self.conditions[cond.id] = cond
                     conds.append(cond)
+
                 self.eca_rules.add(ECA(tsk.event,conds,tsk.action))
         f = dict()
+
         for eca in self.eca_rules:
             f[eca.id] = eca.put()
-        with open(self.title+'_eca.json', 'w') as fp:
-            json.dump(f, fp)
+
+        self.pretty_print(json.dumps(f),self.title+"_eca.json")
