@@ -1,0 +1,91 @@
+{
+    "('1c58ec3a-c4d6-4df7-a9ad-f7321158e63c', 'Check task')": [
+        {
+            "action": [
+                "4b66b12c-94a9-4bdf-8a0d-80600b95d3b8",
+                "Check resources"
+            ],
+            "condition": [
+                "arithmetic",
+                "task != End"
+            ],
+            "event": [
+                "7120503c-993e-4db4-9ffa-58acc0235e01",
+                "start Check resources"
+            ]
+        },
+        {
+            "action": [
+                "863a66b2-aa95-43cf-8c53-2f7d779a28cb",
+                "End"
+            ],
+            "condition": [
+                "arithmetic",
+                "task == End"
+            ],
+            "event": [
+                "7c38f279-f738-4dc9-975c-70e7ad079a92",
+                "start End"
+            ]
+        }
+    ],
+    "('40727740-d0d6-4a67-b218-764a5be4240d', 'Start')": [
+        {
+            "action": [
+                "e808d67f-16bb-4c9d-bbee-91e3f86cadde",
+                "Get a task"
+            ],
+            "condition": [
+                "Arithmetic",
+                "task_state == started"
+            ],
+            "event": [
+                "15d348a2-91b7-44d9-9c99-29dca3cae73d",
+                "start Get a task"
+            ]
+        }
+    ],
+    "('4b66b12c-94a9-4bdf-8a0d-80600b95d3b8', 'Check resources')": [
+        {
+            "action": [
+                "fdccd1fb-bb02-45dc-9bd5-e59e9a327129",
+                "Execute"
+            ],
+            "condition": [
+                "arithmetic",
+                "resources == available"
+            ],
+            "event": [
+                "b679b016-6bc4-4246-966f-3728478c953d",
+                "start Execute"
+            ]
+        }
+    ],
+    "('863a66b2-aa95-43cf-8c53-2f7d779a28cb', 'End')": [],
+    "('e808d67f-16bb-4c9d-bbee-91e3f86cadde', 'Get a task')": [
+        {
+            "action": [
+                "1c58ec3a-c4d6-4df7-a9ad-f7321158e63c",
+                "Check task"
+            ],
+            "condition": null,
+            "event": [
+                "cce76a0d-57dd-464a-ada7-3ee72203145a",
+                "start Check task"
+            ]
+        }
+    ],
+    "('fdccd1fb-bb02-45dc-9bd5-e59e9a327129', 'Execute')": [
+        {
+            "action": [
+                "e808d67f-16bb-4c9d-bbee-91e3f86cadde",
+                "Get a task"
+            ],
+            "condition": null,
+            "event": [
+                "15d348a2-91b7-44d9-9c99-29dca3cae73d",
+                "start Get a task"
+            ]
+        }
+    ]
+}
