@@ -1,8 +1,9 @@
 class Tasks:
 	def create_account(self):
+		print("account created!!")
 		return "Account created"
 
-	def check_cgpa(self):
+	def check_cg(self):
 		return True
 
 	def call_interview(self):
