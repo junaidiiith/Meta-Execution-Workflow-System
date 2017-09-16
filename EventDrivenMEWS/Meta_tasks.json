@@ -2,7 +2,7 @@
   "tasks":[
     {
       "name": "Start",
-      "description": "Start task of a worflow",
+      "description": "Start task of a workflow",
       "owner": "Admin",
       "handler": "MetaExecutionWorkflow.tasks,Tasks,start",
       "manual": "False",
@@ -54,7 +54,7 @@
     },
     {
       "name": "End",
-      "description": "End task of a worflow",
+      "description": "End task of a workflow",
       "owner": "Admin",
       "handler": "MetaExecutionWorkflow.tasks,Tasks, end",
       "manual": "False",

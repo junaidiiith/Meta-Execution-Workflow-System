@@ -6,14 +6,15 @@ import json
 
 
 class Task:
-    __slots__ = ['id', 'name', 'description', 'handler', 'state', 'owner', 'type', 'manual', 'data', 'output_tasks','event','action']
+    __slots__ = ['id', 'affected_objects','name', 'description', 'handler', 'state', 'owner', 'type', 'manual', 'data', 'output_tasks','event','action']
 
     def __init__(self,name=None,type=None,*args,**kwargs):
 
         self.state = TaskStates.NOT_STARTED
         self.name = name.lower()
         self.id = name
-        self.data = {}
+        self.affected_objects = dict()
+        self.data = dict()
         self.owner = None
         self.output_tasks = list()
         self.handler = None
@@ -25,7 +26,7 @@ class Task:
 
     def set_values(self,**values):
         self.handler = values['handler']
-        self.data = values['data']
+        self.affected_objects = values['affected objects']
         self.owner = values['owner']
         try:
             self.output_tasks = values['output_tasks']
@@ -100,15 +101,17 @@ def create_task(**values):
         values['owner'] = input("Enter the owner of the task")
         values['handler'] = tuple(input("Enter the name of module,class and function to execute task with a space or comma").split())
         values['manual'] = input("Enter if the task is manual or not")
-
-        data = {}
+        print("Enter the objects to be affected")
+        values['objects affected'] = {'global':[], 'local':[]}
         while True:
-            var = input("Enter the name of the task variable/constant")
-            if len(var) == 0:
+            type = input("Choose type: 1)Global 2)Local")
+            if type == "1":
+                values['objects affected']['global'].append(input())
+            else:
+                values['objects affected']['local'].append(input("Enter the task name")) #output is the default name of the output of task
+            t = input("Press [Space] to continue adding affected objects and [Enter] to stop")
+            if not t:
                 break
-            val = input("Enter the value of the task variable")
-            data[var] = val
 
-        values['data'] = data
     t.set_values(**values)
     return t

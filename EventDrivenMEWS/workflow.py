@@ -6,18 +6,18 @@ from eca_rule import ECA
 
 
 class Workflow:
-    __slots__ = ['id', 'title', 'type','description', 'events', 'actions', 'conditions', 'tasks','graph', 'eca_rules','roles','resources']
+    __slots__ = ['id', 'title','data', 'type','description', 'events', 'actions', 'conditions', 'tasks','graph', 'eca_rules','roles','resources']
 
-    def __init__(self,title=None, type=None,description=None,*args,**kwargs):
+    def __init__(self,title=None, typ=None,description=None,*args,**kwargs):
         self.id = str(uuid.uuid4())
 
         if not title:
             title = input("Enter the title of the workflow")
         self.title = title
 
-        if not type:
-            type = input("Enter the type of the workflow")
-        self.type = type
+        if not typ:
+            typ = input("Enter the type of the workflow")
+        self.type = typ
 
         if not description:
             description = input("Enter the description of the workflow")
@@ -31,6 +31,7 @@ class Workflow:
         self.resources = set()
         self.graph = dict()
         self.eca_rules = set()
+        self.constants = dict()
 
     # def add_to_db(self):
     #     pass
@@ -78,7 +79,6 @@ class Workflow:
         self.tasks = tasks
         # self.add_to_db()
 
-
     def create_graph(self,graph):
         g = open(graph)
         self.graph = json.load(g)
@@ -119,6 +119,17 @@ class Workflow:
 
         self.pretty_print(json.dumps(graph),f)
 
+    def get_expression(self):
+        type = input("Choose 1) Global 2) Task output variable")
+        if type == "1":
+            operand = {"type":'global', 'variable': input("Enter the variable name for comparison")}
+        else:
+            operand = {'type':'local', 'expression':self.tasks[input("Enter the task name")].data['output']}
+
+        operator = input("Enter the operator")
+        constant = input("Enter the constant to compare")
+        return operand+operator+constant
+
 
     def create_sequence(self, graph=None):
         if graph:
@@ -147,8 +158,7 @@ class Workflow:
                     typ = input("Choose the type of condition\n 1) Arithmetic 2)Database 3) External 4) System")
                     while typ:
                         c = dict()
-                        exp = input("Enter the expression of condition for this task to be executed in the format"
-                                "Operand(space)Operator(space)Constant (For Arithmetic) ")
+                        exp = self.get_expression()
                         if exp:
                             c['type'] = typ
                             c['expression'] = exp
@@ -198,7 +208,7 @@ class Workflow:
 
         data['tasks'] = tasks
         data['graph'] = self.graph
-
+        self.data = data
         return data
 
     def to_json(self, data=None):
