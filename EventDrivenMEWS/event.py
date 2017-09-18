@@ -5,7 +5,7 @@ class Event:
     __slots__ = ['id', '_task', '_description']
 
     def __init__(self, tsk):
-        self.id = tsk.id
+        # self.id = tsk.id
         self._task = tsk
         if tsk:
             self._description = 'start ', tsk.name

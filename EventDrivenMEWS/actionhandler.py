@@ -1,47 +1,55 @@
-from eventhandler import EventHandler
 from states import TaskStates
+import database_funcs
+
 
 class ActionHandler:
+
     def __init__(self,eh):
         self.eventhandler = eh
-        self.events = {}
-
-    def get_events(self,action):
-        return self.events[action]
-
-    def register_event(self,action, event, callback=None):
-        if not callback:
-            callback = getattr(self.eventhandler,'add_event')
-        self.get_events(action)[event] = callback
-
-    def remove_event(self,action,event):
-        del self.events[action][event]
-
-    def get_rule(self,event):
-        #get rule from db with event_id = event.id
-        return "rule"
+        self.dbf = database_funcs.Database()
 
     def add_to_worklist(self,task):
         #add task to the worklist of the owner of the task
-        pass
+        record = {'role': task.handler}
+        user = self.dbf.find_one_record("Users", record)
+        record = {'name':user['name'],'password':user['password'], 'role': user['role'], 'task': task.id}
+        self.dbf.add_to_database("Worklist", record)
 
-    def evaluate(self,conditions):
-        for condition in conditions:
-            if not eval(condition):
-                return False
-        return True
+    def get_response(self, task):
+        record = {"user":task.handler, "task_id": task.id}
+        while True:
+            if not self.dbf.find_one_record("Response", record):
+                continue
+            return  self.dbf.find_one_record("Response", record)
 
     def update_to_local_db(self, var, task_id):
-        pass
+        record = {'type':'local', 'task_id': task_id, 'output':var}
+        self.dbf.add_to_database("Data", record)
 
-    def update_to_global_db(self, global_vars):
-        pass
+
+    def update_to_global_db(self, task_data):
+
+        for k, v in task_data.items():
+            if k.lower() == 'output':
+                continue
+            else:
+                record = {"type":"global", 'variable':k, 'output': v}
+                self.dbf.update_record("Data", record)
 
     def find_in_global(self, var):
-        pass
+        record = {"type":'global','variable':var}
+        try:
+            return self.dbf.find_one_record("Data",record)
+        except:
+            print("Record not found for global variable", var)
 
     def find_in_local(self, var):
-        pass
+        record = {"type":'global','variable':var}
+        try:
+            return self.dbf.find_one_record("Data",record)
+        except:
+            print("Record not found for global variable", var)
+
 
     def evaluate_condition(self, condition):
         operand = condition.operand
@@ -58,30 +66,32 @@ class ActionHandler:
 
     def execute(self,action,*args, **kwargs):
 
-        self.action = action
         assert action.task is not None
-        task = self.action.task
-        self.add_to_worklist(task)
-        g_arg, l_arg = task.affected_objects['global'], task.affected_objects['local']
+        task = action.task
         task.state = TaskStates.READY
-        mod,cls,func = task.handler
-        cls = __import__(mod,cls)
-        callback = getattr(cls,func)
-        # code to execute the action i.e handler of action.task
-        ## Add queues here!!!
 
-        task.state = TaskStates.RUNNING
-        ##
-        ##
-        task.data = callback(g_arg + l_arg, *args, **kwargs)
+        g_arg, l_arg = task.affected_objects['global'], task.affected_objects['local']
+        if task.type == 'manual':
+            self.add_to_worklist(task)
+            task.state = TaskStates.RUNNING
+            task.data = self.get_response(task)
+
+        else:
+
+            mod,cls,func = task.handler
+            cls = __import__(mod,cls)
+            task.state = TaskStates.RUNNING
+            callback = getattr(cls,func)
+            task.data = callback(g_arg + l_arg, *args, **kwargs)
 
         self.update_to_local_db(task.data['output'], task.id) #update new local variables defined in the function
         self.update_to_global_db(task.data)
 
         task.state = TaskStates.FINISHED
-        output_tasks = self.action.task.output_tasks
+        output_tasks = action.task.output_tasks
         for task in output_tasks:
-            event = task.event
-            rule = self.get_rule(event)
-            if self.evaluate(rule.conditions):
-                self.register_event(self.action, event)
+            event = task['event']
+            conditions = task['conditions']
+            if self.evaluate_condition(conditions):
+                self.eventhandler.add_event(event)
+                self.eventhandler.register_action(event, event.task.action)

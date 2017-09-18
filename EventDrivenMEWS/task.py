@@ -3,30 +3,32 @@ from states import TaskStates
 from event import Event
 from action import Action
 import json
+from database_funcs import Database
+dbs = Database()
 
 
 class Task:
-    __slots__ = ['id', 'affected_objects','name', 'description', 'handler', 'state', 'owner', 'type', 'manual', 'data', 'output_tasks','event','action']
+    __slots__ = ['id','workflow_id', 'affected_objects','name', 'description', 'handler', 'state', 'owner', 'type', 'manual', 'data', 'output_tasks','event','action']
 
-    def __init__(self,name=None,type=None,*args,**kwargs):
+    def __init__(self,wid, name=None,type=None,*args,**kwargs):
 
-        self.state = TaskStates.NOT_STARTED
+        self.workflow_id = wid
         self.name = name.lower()
         self.id = name
         self.affected_objects = dict()
-        self.data = dict()
+        self.data = {"output":None}
         self.owner = None
         self.output_tasks = list()
         self.handler = None
         self.manual = False
         self.description = ''
         self.type = type
-        self.event = Event(self)
-        self.action = Action(self)
+        self.state = TaskStates.NOT_STARTED
+
 
     def set_values(self,**values):
         self.handler = values['handler']
-        self.affected_objects = values['affected objects']
+        self.affected_objects = values['affected_objects']
         self.owner = values['owner']
         try:
             self.output_tasks = values['output_tasks']
@@ -35,6 +37,14 @@ class Task:
         self.manual = values['manual']
         self.description = values['description']
         self.type = values['type']
+        event = {"workflow_id": self.workflow_id, "task_id": self.id, "Description": "start " + self.name,  "conditions":[]}
+        action = {"workflow_id":self.workflow_id, "task_id": self.id, "Description": "finish " + self.name}
+        dbs.add_to_database("Events", event)
+        dbs.add_to_database("Actions", action)
+        self.event = dbs.find_one_record("Events", {'task_id': self.id})['_id']
+        self.action = dbs.find_one_record("Actions", {'task_id': self.id})['_id']
+        self.state = TaskStates.NOT_STARTED.value
+
 
     def get_id(self):
         return self.id
@@ -77,40 +87,44 @@ class Task:
         data = {}
         for attr in dir(self):
             if not callable(getattr(self, attr)) and not attr.startswith("__"):
-                data[attr] = self.attr
+                data[attr] = getattr(self,attr)
         return data
 
     def execute(self,**kwargs):
         pass
 
 
-def create_task(**values):
+def create_task(w_id, **values):
 
     try:
         name = values['name'].lower()
     except:
         name = input("Enter the name of the task").lower()
 
-    t = Task(name)
+    t = Task(w_id, name)
     if not values:
         print("Enter the attributes of the task as a tuple")
         values = dict()
-        values['id'] = t.name
         values['description'] = input("Enter the description of the task")
         values['type'] = input("Enter the type of  task --> meta/user")
         values['owner'] = input("Enter the owner of the task")
         values['handler'] = tuple(input("Enter the name of module,class and function to execute task with a space or comma").split())
         values['manual'] = input("Enter if the task is manual or not")
         print("Enter the objects to be affected")
-        values['objects affected'] = {'global':[], 'local':[]}
+        values['affected_objects'] = {'global':[], 'local':[]}
         while True:
             type = input("Choose type: 1)Global 2)Local")
-            if type == "1":
-                values['objects affected']['global'].append(input())
+            if type:
+                if type == "1":
+                    var = input("Enter variable name")
+                    values['affected_objects']['global'].append(var)
+                else:
+                    taskname = (input("Enter the task name")) #output is the default name of the output of task
+                    values['affected_objects']['local'].append(taskname)
+                nxt = input("Press [Space] to continue adding affected objects and [Enter] to stop")
+                if not nxt:
+                    break
             else:
-                values['objects affected']['local'].append(input("Enter the task name")) #output is the default name of the output of task
-            t = input("Press [Space] to continue adding affected objects and [Enter] to stop")
-            if not t:
                 break
 
     t.set_values(**values)

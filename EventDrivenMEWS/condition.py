@@ -2,17 +2,34 @@ from uuid import uuid4
 
 
 class Condition:
-    __slots__ = ['id', '_description', 'event_id', 'type']
+    __slots__ = ['id', '_description','_operator', '_operand', '_constant', 'event_id', 'type']
 
     def __init__(self, event_id, desc=None, type=None):
         self.id = str(uuid4())
         self.type = type
-        self._description = desc
+        self._description = str(desc)
+        if not desc:
+            self._operator = desc['operator']
+            self._operand = desc['operand']
+            self._constant = desc['constant']
+
         self.event_id = event_id
 
     @property
     def description(self):
         return self._description
+
+    @property
+    def operator(self):
+        return self._operator
+
+    @property
+    def operand(self):
+        return self._operand
+
+    @property
+    def constant(self):
+        return self._constant
 
     def put(self):
         data = {}
@@ -21,46 +38,4 @@ class Condition:
                 data[attr] = self.attr
         return data
 
-class ArithmeticEqualityCondition:
-    def __init__(self, operand, operator, constant ):
-        self.operator = operator
-        self.operand = operand
-        self.constant = constant
 
-    def get_condition(self):
-        if self.operator.lower() == "equal" or self.operator == '=' or self.operator == '==':
-            self.condition = str(self.operand) + " == " + str(self.constant)
-        elif self.operator.lower() == "lte" or self.operator == '<=':
-            self.condition = str(self.operand) + " <= " + str(self.constant)
-
-        elif self.operator.lower() == "gte" or self.operator == '>=':
-            self.condition = str(self.operand) + " >= " + str(self.constant)
-
-        elif self.operator.lower() == "lt" or self.operator == '<':
-            self.condition = str(self.operand) + " < " + str(self.constant)
-
-        elif self.operator.lower() == "g" or self.operator == '>':
-            self.condition = str(self.operand) + " > " + str(self.constant)
-
-        elif self.operator.lower() == "ne" or self.operator == '!=':
-            self.condition = str(self.operand) + " != " + str(self.constant)
-        else:
-            self.condition = None
-        return self.condition
-
-
-class Dbcondition:
-
-        def __init__(self, table, attribute, id):
-            self.table = table
-            self.attribute = attribute
-            self.id = id
-
-        def inserted(self):
-            return "Check for insert query"
-
-        def deleted(self):
-            return "Check for delete query"
-
-        def updated(self):
-            return 'Check for update query'

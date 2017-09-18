@@ -5,7 +5,7 @@ class Action:
     __slots__ =  ['id', '_task', '_description', 'event_conditions']
 
     def __init__(self,tsk):
-        self.id = tsk.id
+        # self.id = tsk.id
         if tsk:
             self._description = 'finish ',tsk.name
         self._task = tsk
