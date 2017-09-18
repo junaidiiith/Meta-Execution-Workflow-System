@@ -24,14 +24,10 @@ class Workflow:
             description = input("Enter the description of the workflow")
         self.description = description
 
-        self.actions = dict()
-        self.events = dict()
-        self.conditions = dict()
         self.tasks = dict()
         self.roles = set()
         self.resources = set()
         self.graph = dict()
-        self.eca_rules = set()
         self.constants = dict()
         self.dbs = Database()
 
@@ -84,7 +80,9 @@ class Workflow:
             i = input("1: Add task [Enter]: Completed defining tasks")
             if i != "1":
                 break
-        self.tasks = tasks
+        tasks = self.dbs.find_many_records("Tasks",{"workflow_id":self.id})
+        for tsk in tasks:
+            self.tasks[tsk['_id']] = tsk
         # self.add_to_db()
 
     def create_graph(self,graph):
@@ -143,22 +141,24 @@ class Workflow:
         else:
 
             graph = {}
-            temp = {}
+            temp = []
+            i = 0
             print("These are the tasks. Select the output tasks of each task")
-            for i, tsk in enumerate(self.tasks.values(),1):
-                print(i,")Task name is: ", tsk.name)
-                temp[i] = tsk
+            for id, task in self.tasks.items():
+                print(i+1,")Task name is: ", task['name'])
+                temp.append(task)
+                i += 1
 
-            for k,t in self.tasks.items():
-                i = input("Enter the index of output task of " + t.name)
+            for id, task in self.tasks.items():
+                i = input("Enter the index of output task of " + task['name'])
                 out_tasks = []
                 while len(i):
-                    tsk = temp[int(i)]
+                    tsk = temp[int(i)-1]
                     conditions = []
                     c = dict()
                     c['type'] = 'Arithmetic'
-                    c['expression'] = {'operand':{'type':'local','expression':{'name':t.name, 'variable': 'state'}}, 'operator':'==', 'constant':'finished'}
-                    c['event_id'] = tsk.event
+                    c['expression'] = {'operand':{'type':'local','expression':{'name':task['name'], 'variable': 'state'}}, 'operator':'==', 'constant':'finished'}
+                    c['event_id'] = tsk['event']
                     c['workflow_id'] = self.id
                     self.dbs.add_to_database("conditions",c)
                     c_id = self.dbs.find_one_record("conditions",c)['_id']
@@ -170,7 +170,7 @@ class Workflow:
                         if exp:
                             c['type'] = typ
                             c['expression'] = exp
-                            c['event_id'] = tsk.event
+                            c['event_id'] = tsk['event']
                             c['workflow_id'] = self.id
                             self.dbs.add_to_database("conditions",c)
                             c_id = self.dbs.find_one_record("conditions", c)['_id']
@@ -178,19 +178,19 @@ class Workflow:
                         typ = input("Choose the type of condition\n 1) Arithmetic 2)Database 3) External 4) System."
                                     "Press [Enter] to stop adding condition ")
 
-                    evnt = self.dbs.find_one_record("Events",{'_id':tsk.event})
+                    evnt = self.dbs.find_one_record("Events",{'_id':tsk['event']})
                     evnt['conditions'].append(conditions)
                     print(evnt)
-                    self.dbs.update_record("Events",{'_id':tsk.event}, evnt)
-                    out_tasks.append(tsk.event)
+                    self.dbs.update_record("Events",{'_id':tsk['event']}, evnt)
+                    out_tasks.append(evnt)
                     print("Task and condition added")
                     i = input("press [Enter] to move on to the next task or index of the next output task")
 
-                t.output_tasks = out_tasks
-                act = self.dbs.find_one_record("Actions",{'_id':t.action})
+                task['output_tasks'] = out_tasks
+                act = self.dbs.find_one_record("Actions",{'_id':task['action']})
                 act['event_conditions'] = out_tasks
-                self.dbs.update_record("Actions", {'_id':t.action}, act)
-                graph[t.name] = t.output_tasks
+                self.dbs.update_record("Actions", {'_id':task['action']}, act)
+                graph[task['name']] = task['output_tasks']
             self.graph = {"graph":graph,"workflow id":self.id}
         self.dbs.add_to_database("graph",self.graph)
         record = {"workflow_id":self.id}
@@ -235,28 +235,28 @@ class Workflow:
         with open(self.title+'.json', 'w') as fp:
             json.dump(data, fp)
 
-    def create_events_condition_action_rules(self):
-        for k,t in self.tasks.items():
-            for o in t.output_tasks:
-                conditions = o['conditions']
-                tsk = self.tasks[o['action']]
-                conds = []
-                for condition in conditions:
-                    tp = condition['type'].lower()
-                    if tp == 'arithmetic':
-                        expr = condition['expression']
+    # def create_events_condition_action_rules(self):
+    #     for k,t in self.tasks.items():
+    #         for o in t.output_tasks:
+    #             conditions = o['conditions']
+    #             tsk = self.tasks[o['action']]
+    #             conds = []
+    #             for condition in conditions:
+    #                 tp = condition['type'].lower()
+    #                 if tp == 'arithmetic':
+    #                     expr = condition['expression']
+    #
+    #                     cond = Condition(tsk.event.id,expr)
+    #                 else:
+    #                     cond = Condition(tsk.event.id)
+    #                 if not cond:
+    #                     self.conditions[cond.id] = cond
+    #                 conds.append(cond)
+    #
+    #             self.eca_rules.add(ECA(tsk.event,conds,tsk.action))
+    #     f = dict()
 
-                        cond = Condition(tsk.event.id,expr)
-                    else:
-                        cond = Condition(tsk.event.id)
-                    if not cond:
-                        self.conditions[cond.id] = cond
-                    conds.append(cond)
-
-                self.eca_rules.add(ECA(tsk.event,conds,tsk.action))
-        f = dict()
-
-        for eca in self.eca_rules:
-            f[eca.id] = eca.put()
-
-        self.pretty_print(json.dumps(f),self.title+"_eca.json")
+        # for eca in self.eca_rules:
+        #     f[eca.id] = eca.put()
+        #
+        # self.pretty_print(json.dumps(f),self.title+"_eca.json")
