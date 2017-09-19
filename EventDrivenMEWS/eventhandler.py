@@ -1,9 +1,13 @@
 from actionhandler import ActionHandler
 from states import TaskStates
 
+
+from database_funcs import Database
+
 class EventHandler:
     def __init__(self):
         self.actions = {}
+        self.dbs = Database()
         self.actionhandler = ActionHandler(self)
 
     def add_event(self,event):
@@ -21,6 +25,12 @@ class EventHandler:
         del self.actions[event]
 
     def fire(self,event,*args,**kwargs):
-        event.task.state = TaskStates.READY
+        wid = event['workflow_id']
+        name = event['task']
+        task = self.dbs.find_one_record("Tasks",{"workflow_id":wid, 'name': name })
+        temp = task
+        task['state'] = TaskStates.READY.value
+        self.dbs.update_record("Tasks",temp, task)
+
         for action,callback in self.get_action(event):
             callback(action, *args,**kwargs)

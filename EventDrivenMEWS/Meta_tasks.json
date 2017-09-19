@@ -2,14 +2,14 @@
   "tasks":[
     {
       "name": "Start",
-      "affected_objects" : { "local" : [ "userworkflowid" ], "global" : [ ] },
+      "affected_objects" : { "local" : [ ], "global" : ["userworkflowid"] },
       "description": "Start task of a workflow",
       "owner": "Admin",
       "handler": "MetaExecutionWorkflow.tasks,Tasks,start",
       "manual": "False",
-      "type": "meta",
-      "data": {
-      }
+      "type": "meta"
+//      "data": {
+//      }
     },
     {
       "name": "Get a task",
@@ -18,54 +18,45 @@
       "owner": "Admin",
       "handler": "MetaExecutionWorkflow.tasks,Tasks, get_a_task",
       "manual": "False",
-      "type": "meta",
-      "data": {
-      }
+      "type": "meta"
+//      "data": {
+//      }
     },
     {
       "name": "Check resources",
-      "affected_objects" : { "local" : [ "get a task" ], "global" : [ "userworkflowid" ] },
+      "affected_objects" : { "local" : [[ "get a task",["task_id"]]], "global" : [ "userworkflowid" ] },
       "description": "Checking the resources of the task before execution",
       "owner": "Admin",
       "handler": "MetaExecutionWorkflow.tasks,Tasks, check_resources",
       "manual": "False",
-      "type": "meta",
-      "data": {
-      }
+      "type": "meta"
     },
     {
       "name": "Check task",
-      "affected_objects" : { "local" : [ "get a task" ], "global" : [ "userworkflowid" ] },
+      "affected_objects" : { "local" : [[ "get a task",["task_id"]]], "global" : [ "userworkflowid" ] },
       "description": "Checking if the task is end or not",
       "owner": "Admin",
       "handler": "MetaExecutionWorkflow.tasks,Tasks, check_task",
       "manual": "False",
-      "type": "meta",
-      "data": {
-        "task":"End"
-      }
+      "type": "meta"
     },
     {
       "name": "Execute",
-      "affected_objects" : { "local" : [ "get a task" ], "global" : [ "userworkflowid" ] },
+      "affected_objects" : { "local" : [[ "get a task", ["task_id"]]], "global" : [ "userworkflowid" ] },
       "description": "Execute the task of a workflow",
       "owner": "Admin",
       "handler": "MetaExecutionWorkflow.tasks,Tasks, execute",
       "manual": "False",
-      "type": "meta",
-      "data": {
-      }
+      "type": "meta"
     },
     {
       "name": "End",
-      "affected_objects" : { "local" : [ "Check task" ], "global" : [ ] },
+      "affected_objects" : { "local" : [["Check task",["end"]]], "global" : [ ] },
       "description": "End task of a workflow",
       "owner": "Admin",
       "handler": "MetaExecutionWorkflow.tasks,Tasks, end",
       "manual": "False",
-      "type": "meta",
-      "data": {
-      }
+      "type": "meta"
     }
   ]
 }

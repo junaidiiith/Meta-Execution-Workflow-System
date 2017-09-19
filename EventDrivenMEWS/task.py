@@ -16,7 +16,7 @@ class Task:
         self.name = name.lower()
         self.id = name
         self.affected_objects = dict()
-        self.data = {"output":None}
+        self.data = {}
         self.owner = None
         self.output_tasks = list()
         self.handler = None
@@ -37,12 +37,12 @@ class Task:
         self.manual = values['manual']
         self.description = values['description']
         self.type = values['type']
-        event = {"workflow_id": self.workflow_id, "task_id": self.id, "Description": "start " + self.name,  "conditions":[]}
-        action = {"workflow_id":self.workflow_id, "task_id": self.id, "Description": "finish " + self.name}
+        event = {"workflow_id": self.workflow_id, "task": self.id, "Description": "start " + self.name,  "conditions":[]}
+        action = {"workflow_id":self.workflow_id, "task": self.id, "Description": "finish " + self.name}
         dbs.add_to_database("Events", event)
         dbs.add_to_database("Actions", action)
-        self.event = dbs.find_one_record("Events", {'task_id': self.id})['_id']
-        self.action = dbs.find_one_record("Actions", {'task_id': self.id})['_id']
+        self.event = dbs.find_one_record("Events", event)['_id']
+        self.action = dbs.find_one_record("Actions", action)['_id']
         self.state = TaskStates.NOT_STARTED.value
 
 
@@ -116,11 +116,12 @@ def create_task(w_id, **values):
             type = input("Choose type: 1)Global 2)Local")
             if type:
                 if type == "1":
-                    var = input("Enter variable name")
+                    var = input("Enter the global variable names(comma separated)").split(',')
                     values['affected_objects']['global'].append(var)
                 else:
-                    taskname = (input("Enter the task name")) #output is the default name of the output of task
-                    values['affected_objects']['local'].append(taskname)
+                    taskname = input("Enter the task name") #output is the default name of the output of task
+                    vars = input("Enter the objects affected(comma separated)").split(',')
+                    values['affected_objects']['local'].append([taskname,vars])
                 nxt = input("Press [Space] to continue adding affected objects and [Enter] to stop")
                 if not nxt:
                     break

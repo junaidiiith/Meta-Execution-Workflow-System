@@ -180,14 +180,16 @@ class Workflow:
 
                     evnt = self.dbs.find_one_record("Events",{'_id':tsk['event']})
                     evnt['conditions'].append(conditions)
-                    print(evnt)
+
                     self.dbs.update_record("Events",{'_id':tsk['event']}, evnt)
-                    out_tasks.append(evnt)
+                    out_tasks.append(evnt['_id'])
                     print("Task and condition added")
                     i = input("press [Enter] to move on to the next task or index of the next output task")
 
                 task['output_tasks'] = out_tasks
                 act = self.dbs.find_one_record("Actions",{'_id':task['action']})
+
+
                 act['event_conditions'] = out_tasks
                 self.dbs.update_record("Actions", {'_id':task['action']}, act)
                 graph[task['name']] = task['output_tasks']
