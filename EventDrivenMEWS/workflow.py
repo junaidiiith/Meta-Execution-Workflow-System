@@ -1,16 +1,16 @@
-import uuid
 import json
 import task
-from condition import *
-from eca_rule import ECA
 from database_funcs import Database
+from uuid import uuid4
 
 
 class Workflow:
-    __slots__ = ['id','dbs', 'constants','title','data', 'type','description', 'events', 'actions', 'conditions', 'tasks','graph', 'eca_rules','roles','resources']
+    __slots__ = ['id','dbs','globals', 'constants','title', 'type','description', 'tasks','graph', 'roles','resources']
 
     def __init__(self,title=None, typ=None,description=None,*args,**kwargs):
-        self.id = str(uuid.uuid4())
+        self.id = str(uuid4())
+        self.dbs = Database()
+        self.dbs.add_to_database("Workflow",{'id':self.id})
 
         if not title:
             title = input("Enter the title of the workflow")
@@ -24,43 +24,70 @@ class Workflow:
             description = input("Enter the description of the workflow")
         self.description = description
 
-        self.tasks = dict()
-        self.roles = set()
-        self.resources = set()
-        self.graph = dict()
+        self.tasks = list()
+        self.roles = list()
+        self.resources = list()
         self.constants = dict()
-        self.dbs = Database()
+        self.define_roles()
+        self.define_resources()
+        self.define_constants()
+        self.graph = dict()
 
-    # def add_to_db(self):
+        self.globals = dict()
     #     pass
+
+    def add_global_data(self):
+        for k,v in self.globals.items():
+            record = {"type": "global", 'variable': k, 'value': v, "workflow_id": self.id}
+            self.dbs.add_to_database("Data", record)
 
     def define_roles(self,roles=None):
         if roles:
             for role in roles:
-                self.roles.add(role)
+                self.roles.append(role)
         else:
             print("Enter roles. Press [ENTER] to quit adding role")
             while True:
                 role = input("Enter a role")
                 if not role:
                     break
-                self.roles.add(role)
+                self.roles.append(role)
         self.dbs.add_to_database("Roles",{'roles':roles})
 
     def define_resources(self,resources=None):
         if resources:
             for resource in resources:
-                self.resources.add(resource)
+                self.resources.append(resource)
         else:
             print("Enter the location of resources. Press [ENTER] to quit adding resources")
             while True:
                 resource = input("Enter the location of resource")
                 if not resource:
                     break
-                self.resources.add(resource)
+                self.resources.append(resource)
 
         self.dbs.add_to_database("Resources",{'resources':resources})
 
+    def define_globals(self):
+        print("Initializing the default values of the global variables")
+        while True:
+            var_name = input("Enter the name of a global variable")
+            if len(var_name):
+                val = input("Enter the default value")
+                assert val != None
+                self.globals[var_name] = val
+            else:
+                break
+
+    def define_constants(self):
+        while True:
+            var_name = input("Enter the name of a constant variable")
+            if len(var_name):
+                val = input("Enter the default value")
+                assert val != None
+                self.constants[var_name] = val
+            else:
+                break
 
     def load_tasks(self, tasks):
         f = open(tasks)
@@ -82,30 +109,32 @@ class Workflow:
                 break
         tasks = self.dbs.find_many_records("Tasks",{"workflow_id":self.id})
         for tsk in tasks:
-            self.tasks[tsk['_id']] = tsk
+            self.tasks.append(tsk)
+        self.define_globals()
         # self.add_to_db()
 
     def create_graph(self,graph):
-        g = open(graph)
-        self.graph = json.load(g)
-
-        for k,v in self.graph.items():
-            tsk = self.tasks[k.lower()]
-            out_tasks = []
-            event_cond = []
-            for value in v:
-                out = self.tasks[value['action']]
-                conds = value['conditions']
-                d = dict()
-                d['action'] = out.id
-                d['conditions'] = conds
-                out_tasks.append(d)
-                d = dict()
-                d['event'] = out.event.id, out.event.description
-                d['conditions'] = conds
-                event_cond.append(d)
-            tsk.output_tasks = out_tasks
-            tsk.action.event_conditions = event_cond
+        pass
+    #     g = open(graph)
+    #     self.graph = json.load(g)
+    #
+    #     for k,v in self.graph.items():
+    #         tsk = self.tasks[k.lower()]
+    #         out_events = []
+    #         event_cond = []
+    #         for value in v:
+    #             out = self.tasks[value['action']]
+    #             conds = value['conditions']
+    #             d = dict()
+    #             d['action'] = out.id
+    #             d['conditions'] = conds
+    #             out_events.append(d)
+    #             d = dict()
+    #             d['event'] = out.event.id, out.event.description
+    #             d['conditions'] = conds
+    #             event_cond.append(d)
+    #         tsk.output_tasks = out_events
+    #         tsk.action.event_conditions = event_cond
 
 
     def pretty_print(self, json_dict_or_string, f):
@@ -134,7 +163,6 @@ class Workflow:
         constant = input("Enter the constant to compare")
         return {'operand':operand,'operator':operator, 'constant':constant}
 
-
     def create_sequence(self, graph=None):
         if graph:
             self.create_graph(graph)
@@ -144,14 +172,14 @@ class Workflow:
             temp = []
             i = 0
             print("These are the tasks. Select the output tasks of each task")
-            for id, task in self.tasks.items():
-                print(i+1,")Task name is: ", task['name'])
-                temp.append(task)
+            for tsk in self.tasks:
+                print(i+1,")Task name is: ", tsk['name'])
+                temp.append(tsk)
                 i += 1
 
-            for id, task in self.tasks.items():
+            for task in self.tasks:
                 i = input("Enter the index of output task of " + task['name'])
-                out_tasks = []
+                out_events = []
                 while len(i):
                     tsk = temp[int(i)-1]
                     conditions = []
@@ -182,23 +210,36 @@ class Workflow:
                     evnt['conditions'].append(conditions)
 
                     self.dbs.update_record("Events",{'_id':tsk['event']}, evnt)
-                    out_tasks.append(evnt['_id'])
+                    out_events.append(evnt['_id'])
                     print("Task and condition added")
                     i = input("press [Enter] to move on to the next task or index of the next output task")
 
-                task['output_tasks'] = out_tasks
+                task['output_events'] = out_events
                 act = self.dbs.find_one_record("Actions",{'_id':task['action']})
 
-
-                act['event_conditions'] = out_tasks
+                act['output_events'] = out_events
                 self.dbs.update_record("Actions", {'_id':task['action']}, act)
-                graph[task['name']] = task['output_tasks']
+                graph[task['name']] = out_events
+
             self.graph = {"graph":graph,"workflow id":self.id}
         self.dbs.add_to_database("graph",self.graph)
+
+        gid = self.dbs.find_one_record("graph", self.graph)['_id']
+
+        n_record = {"tasks": [t['_id'] for t in self.tasks], "globals": self.globals, "resources":self.resources, "constants": self.constants,
+                   "roles":self.roles, "graph": gid}
+
+        o_record = self.dbs.find_one_record("Workflow",{'id':self.id})
+        print(type(o_record), type(n_record))
+        print(o_record), print(n_record)
+        self.dbs.update_record("Workflow", o_record, n_record)
+        self.add_global_data()
+
+
         record = {"workflow_id":self.id}
         events = self.dbs.find_many_records("Events",record)
         for event in events:
-            print(event['task_id'])
+            print(event['task'])
             typ = input("Enter the type of conditions join/and/or for this task [default 'AND']")
             event['condition_type'] = typ
             self.dbs.update_record("Events", {'_id':event['_id']}, event)
@@ -227,7 +268,7 @@ class Workflow:
 
         data['tasks'] = tasks
         data['graph'] = self.graph
-        self.data = data
+        data['globals'] = self.globals
         return data
 
     def to_json(self, data=None):

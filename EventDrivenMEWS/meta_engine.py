@@ -28,7 +28,7 @@ class MetaEngine:
         while len(waiting_queue):
             print("Registering events!")
             for eve in waiting_queue:
-                task = self.dbs.find_one_record("Tasks", {"name": eve.task, "workflow_id": self.mw.id})
+                task = self.dbs.find_one_record("Tasks", {"name": eve['task'], "workflow_id": self.mw.id})
                 self.mEHandler.register_action(eve, task['action'])
 
             print("Raising events!")

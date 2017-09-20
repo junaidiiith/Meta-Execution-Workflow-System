@@ -110,22 +110,19 @@ def create_task(w_id, **values):
         values['owner'] = input("Enter the owner of the task")
         values['handler'] = tuple(input("Enter the name of module,class and function to execute task with a space or comma").split())
         values['manual'] = input("Enter if the task is manual or not")
-        print("Enter the objects to be affected")
+        print("Enter the objects to be affected/required")
         values['affected_objects'] = {'global':[], 'local':[]}
+        var = input("Enter the global variable names(comma separated)").split(',')
+        values['affected_objects']['global'].append(var)
+        print("Entering local objected required")
         while True:
-            type = input("Choose type: 1)Global 2)Local")
-            if type:
-                if type == "1":
-                    var = input("Enter the global variable names(comma separated)").split(',')
-                    values['affected_objects']['global'].append(var)
-                else:
-                    taskname = input("Enter the task name") #output is the default name of the output of task
-                    vars = input("Enter the objects affected(comma separated)").split(',')
-                    values['affected_objects']['local'].append([taskname,vars])
-                nxt = input("Press [Space] to continue adding affected objects and [Enter] to stop")
-                if not nxt:
-                    break
-            else:
+            taskname = input("Enter the task name") #output is the default name of the output of task
+            if not taskname:
+                break
+            vars = input("Enter the objects required(comma separated)").split(',')
+            values['affected_objects']['local'].append([taskname,vars])
+            nxt = input("Press [Space] to continue adding affected objects and [Enter] to stop")
+            if not nxt:
                 break
 
     t.set_values(**values)
