@@ -108,7 +108,7 @@ def create_task(w_id, **values):
         values['description'] = input("Enter the description of the task")
         values['type'] = input("Enter the type of  task --> meta/user")
         values['owner'] = input("Enter the owner of the task")
-        values['handler'] = tuple(input("Enter the name of module,class and function to execute task with a space or comma").split())
+        values['handler'] = tuple(input("Enter the name of module,class and function to execute task with a space or comma").split(','))
         values['manual'] = input("Enter if the task is manual or not")
         print("Enter the objects to be affected/required")
         values['affected_objects'] = {'global':[], 'local':[]}
