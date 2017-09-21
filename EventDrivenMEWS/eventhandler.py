@@ -1,6 +1,6 @@
 from actionhandler import ActionHandler
 from states import TaskStates
-
+from copy import copy
 
 from database_funcs import Database
 
@@ -14,6 +14,7 @@ class EventHandler:
 
     def add_event(self,event):
         # t = type(event['_id'])
+        print("Adding event", event["Description"])
         self.waiting_queue.append(event['_id'])
     # def get_action(self,event):
     #     print(self.actions)
@@ -50,7 +51,12 @@ class EventHandler:
         # d = self.actions[event_id])
         # actions = self.dbs.find_many_records("ActionHandler",{"event":event['_id'], "workflow_id":self.workflow_id})
 
-        for action in self.ready_queue:
+        while len(self.ready_queue):
+            action = self.ready_queue.pop(0)
             print("Action is", action)
             callback = getattr(self.actionhandler,'execute')
+            # print("kwargs:", kwargs)
             callback(action, *args,**kwargs)
+            print("length q", len(self.ready_queue))
+
+        # self.ready_queue = self.new_ready_queue

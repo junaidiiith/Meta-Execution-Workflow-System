@@ -111,6 +111,7 @@ class Workflow:
         for tsk in tasks:
             self.tasks.append(tsk)
         self.define_globals()
+        self.dbs.add_to_database("Data",{"workflow_id": self.id, "type":"local", "varible":"state", "value":"not started"})
         # self.add_to_db()
 
     def create_graph(self,graph):

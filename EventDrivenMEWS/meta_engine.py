@@ -31,24 +31,19 @@ class MetaEngine:
 
     def execute(self):
 
-        waiting_queue = self.mEHandler.waiting_queue
-        while len(waiting_queue):
-            print("Registering events!")
-            for eve in waiting_queue:
-                id = self.type(eve)
-                event = self.dbs.find_one_record("Events",{'_id':id})
-                print("Registering ", event['Description'])
-                task = self.dbs.find_one_record("Tasks", {"name": event['task'], "workflow_id": self.mw})
-                action = self.dbs.find_one_record("Actions",{'_id':task['action']})
-                # print(task)
-                # print(type(event['_id']), type(task['action']))
-                self.mEHandler.register_action(action)
+        while len(self.mEHandler.waiting_queue):
+            eve = self.mEHandler.waiting_queue.pop(0)
+            id = self.type(eve)
+            event = self.dbs.find_one_record("Events",{'_id':id})
+            print("Registering ", event['Description'])
+            task = self.dbs.find_one_record("Tasks", {"name": event['task'], "workflow_id": self.mw})
+            action = self.dbs.find_one_record("Actions",{'_id':task['action']})
+            self.mEHandler.register_action(action)
 
             print("Raising events!")
-            for eve in waiting_queue:
-                id = self.type(eve)
-                event = self.dbs.find_one_record("Events", {'_id': id})
-                print("Raising ",event['Description'])
-                self.mEHandler.fire(event['_id'], ueh=self.uEHandler, uw=self.uw)
-            print("waiting queue",waiting_queue)
-            waiting_queue = self.mEHandler.waiting_queue
+            id = self.type(eve)
+            event = self.dbs.find_one_record("Events", {'_id': id})
+            print("Raising ",event['Description'])
+            self.mEHandler.fire(event['_id'], ueh=self.uEHandler, uw=self.uw)
+            print("length is",len(self.mEHandler.waiting_queue))
+
