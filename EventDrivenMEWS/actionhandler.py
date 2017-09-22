@@ -53,6 +53,7 @@ class ActionHandler:
             self.dbf.add_to_database("Data",newrecord)
 
     def find_in_global(self, var, wid):
+
         record = {"type":'global','variable':var, "workflow_id":wid}
         try:
             x = self.dbf.find_one_record("Data",record)
@@ -107,7 +108,7 @@ class ActionHandler:
             return self.cmp(op_val,operator,constant)
 
     def update_task_state(self, act_or_eve, value):
-        print("Updating task state to ", value)
+        # print("Updating task state to ", value)
         wid = act_or_eve['workflow_id']
         name = act_or_eve['task']
         self.dbf.update_record("Data",{"workflow_id":wid,"task_id":name, "type":"local", "variable":"state"},{"value":value.lower()})
@@ -140,7 +141,7 @@ class ActionHandler:
         __import__(name.rsplit('.', 1)[0])
         components = name.split('.')
         mod = __import__(components[0])
-        print(mod)
+        # print(mod)
         for comp in components[1:]:
             mod = getattr(mod, comp)
         return mod
@@ -157,13 +158,13 @@ class ActionHandler:
 
 
     def execute(self,action, *args, **kwargs):
-        print("kwargs:", kwargs)
+        # print("kwargs:", kwargs)
         assert action is not None
         action = self.dbf.find_one_record("Actions",{'_id':action})
-        print("Action is ", action['Description'])
+        # print("Action is ", action['Description'])
         task = self.update_task_state(action, TaskStates.READY.value)
         wid = action['workflow_id']
-        print(task)
+        # print(task)
 
         if task['manual'] == "True":
             print("Adding task to worklist of ", task['owner'])
@@ -172,6 +173,8 @@ class ActionHandler:
         else:
             for arg in task['affected_objects']['global']:
                 for argument in arg:
+                    if len(argument) == 0:
+                        continue
                     val = self.find_in_global(argument, wid)
                     kwargs[argument] = val
                     # print("global", argument, val)
@@ -211,7 +214,7 @@ class ActionHandler:
                                     condition['expression']['constant'] == "finished" and condition_type == "or":
                         break
                 else:
-                    print("Here")
+                    print("Condition false")
                     found = True
 
             if not found or c:

@@ -14,7 +14,7 @@ class EventHandler:
 
     def add_event(self,event):
         # t = type(event['_id'])
-        print("Adding event", event["Description"])
+        # print("Adding event", event["Description"])
         self.waiting_queue.append(event['_id'])
     # def get_action(self,event):
     #     print(self.actions)
@@ -31,7 +31,7 @@ class EventHandler:
         #     callback = getattr(self.actionhandler,'execute')
         # self.dbs.add_to_database("ActionHandler",{"event":event['_id'], "workflow_id":self.workflow_id, "callback":callback })
         self.ready_queue.append(action['_id'])
-        print("Registered")
+        # print("Registered")
 
 
     def update_task_state(self, act_or_eve, value):
@@ -45,7 +45,7 @@ class EventHandler:
 
     def fire(self,event_id,*args,**kwargs):
         event = self.dbs.find_one_record("Events",{'_id':event_id})
-        print("Raising event for ", event['Description'], " finish")
+        # print("Raising event for ", event['Description'], " finish")
         task = self.update_task_state(event, TaskStates.READY.value)
 
         # d = self.actions[event_id])
@@ -53,10 +53,10 @@ class EventHandler:
 
         while len(self.ready_queue):
             action = self.ready_queue.pop(0)
-            print("Action is", action)
+            # print("Action is", action)
             callback = getattr(self.actionhandler,'execute')
             # print("kwargs:", kwargs)
             callback(action, *args,**kwargs)
-            print("length q", len(self.ready_queue))
+            # print("length q", len(self.ready_queue))
 
         # self.ready_queue = self.new_ready_queue

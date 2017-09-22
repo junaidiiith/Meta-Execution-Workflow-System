@@ -40,10 +40,10 @@ class MetaEngine:
             action = self.dbs.find_one_record("Actions",{'_id':task['action']})
             self.mEHandler.register_action(action)
 
-            print("Raising events!")
+            # print("Raising events!")
             id = self.type(eve)
             event = self.dbs.find_one_record("Events", {'_id': id})
             print("Raising ",event['Description'])
             self.mEHandler.fire(event['_id'], ueh=self.uEHandler, uw=self.uw)
-            print("length is",len(self.mEHandler.waiting_queue))
+            # print("length is",len(self.mEHandler.waiting_queue))
 
