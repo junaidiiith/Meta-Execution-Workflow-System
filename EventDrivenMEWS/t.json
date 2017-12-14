@@ -1,0 +1,41 @@
+{
+    "constants": {},
+    "definition": "",
+    "description": "",
+    "globals": {},
+    "resources": [],
+    "roles": [],
+    "tasks": [
+        {
+            "affected_objects": {
+                "global": [],
+                "local": []
+            },
+            "description": "",
+            "handler": [
+                ""
+            ],
+            "manual": "",
+            "name": "t2",
+            "output_tasks": [],
+            "owner": "",
+            "type": ""
+        },
+        {
+            "affected_objects": {
+                "global": [],
+                "local": []
+            },
+            "description": "",
+            "handler": [
+                ""
+            ],
+            "manual": "",
+            "name": "t2",
+            "output_tasks": [],
+            "owner": "",
+            "type": ""
+        }
+    ],
+    "title": "t"
+}

@@ -4,6 +4,7 @@ from states import TaskStates
 
 class WorklistExecution:
     def __init__(self):
+        self.actions = []
         self.user = input("Enter your name")
         self.password = input("Enter password")
         self.dbs = Database()
@@ -12,7 +13,7 @@ class WorklistExecution:
             self.user = input("Invalid credentials.\nEnter your name")
             self.password = input("Enter your password")
             user = self.find_user()
-        self.worklist = [record for record in self.get_worklist()]
+        self.worklist = [record['action'] for record in self.get_worklist()]
         if not self.worklist:
             print("No tasks pending!")
         else:
@@ -21,7 +22,10 @@ class WorklistExecution:
 
     def find_user(self):
         record = {'name':self.user, 'password':self.password}
-        return self.dbs.find_one_record('Users', record)['_id']
+        try:
+            return self.dbs.find_one_record('Users', record)['_id']
+        except:
+            return None
 
     def get_worklist(self):
         record = {'name':self.user, 'password':self.password}
@@ -33,14 +37,13 @@ class WorklistExecution:
         worklist = self.worklist
         i = 1
         for w in worklist:
-            action_id = w['action']
-            action = self.dbs.find_one_record("Actions", action_id)
-            self.actions.append(action)
-            print(str(i)+')',action['description'])
+            action = self.dbs.find_one_record("Actions", {'_id': w})
+            self.actions.append(action['_id'])
+            print(str(i)+')',action['Description'])
             i += 1
 
     def get_task(self, action):
-        record = {"action":action['_id']}
+        record = {"action":action}
         return self.dbs.find_one_record("Tasks", record)
 
     def add_to_local_db(self, data, task_id, wid):
@@ -55,27 +58,52 @@ class WorklistExecution:
             self.dbs.add_to_database("Data",newrecord)
 
     def find_in_global(self, var, wid):
+
         record = {"type":'global','variable':var, "workflow_id":wid}
         try:
-            return self.dbs.find_one_record("Data",record)
+            x = self.dbs.find_one_record("Data",record)
+            # print("Xis", x)
+            return x['value']
         except:
             print("Record not found for global variable", var)
 
     def find_in_local(self, var, tid, wid):
-        record = {"type":'global','variable':var, "task_id": tid,  "workflow_id":wid}
+        record = {"type":'local','variable':var, "task_id": tid,  "workflow_id":wid}
         try:
-            return self.dbs.find_one_record("Data",record)
+            return self.dbs.find_one_record("Data",record)['value']
         except:
-            print("Record not found for global variable", var)
+            print("Record not found for local variable", var, " for task ", tid)
 
     def update_task_state(self, act_or_eve, value):
-        wid = act_or_eve['workflow_id']
-        name = act_or_eve['task']
-        task = self.dbs.find_one_record("Tasks", {"workflow_id": wid, 'name': name})
-        temp = task
-        task['state'] = value
-        self.dbs.update_record("Tasks", temp, task)
-        return task
+        # print("action is",act_or_eve)
+        action = self.dbs.find_one_record("Actions", {"_id": act_or_eve})
+        wid = action['workflow_id']
+        name = action['task']
+        oldrecord = {"workflow_id":wid,"task_id":name, "type":"local",
+                                       "variable":"state"}
+        newrecord = {"value":value.lower()}
+        print("Changing state for", oldrecord, " to ", newrecord)
+        self.dbs.update_record("Data",oldrecord, newrecord)
+
+
+    def my_import(self, name):
+        __import__(name.rsplit('.', 1)[0])
+        components = name.split('.')
+        mod = __import__(components[0])
+        # print(mod)
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        return mod
+
+    def execute_task(self, handler, *args, **kwargs):
+
+        x = handler.rsplit('.', 1)
+        cls, func = self.my_import(x[0])(*args, **kwargs), x[1]
+        callback = getattr(cls, func)
+
+        d = dict()
+        d['output'] = callback(*args, **kwargs) or None
+        return d
 
     def execute_worklist(self, *args, **kwargs):
         self.print_tasks()
@@ -88,26 +116,25 @@ class WorklistExecution:
             wid = task['workflow_id']
 
             for arg in task['affected_objects']['global']:
+                arg = arg[0]
                 val = self.find_in_global(arg, wid)
                 kwargs[arg] = val
 
-            for arg in task.affected_objects['local']:
+            for arg in task['affected_objects']['local']:
                 t_id = arg[0]
                 for var in arg[1]:
                     val = self.find_in_local(var, t_id, wid)
                     kwargs[var] = val
 
-            mod, cls, func = task['handler'].split(',')
-            cls = __import__(mod, cls)
-            task = self.update_task_state(action, TaskStates.RUNNING.value)
-            callback = getattr(cls, func)
-            task['data'] = callback(*args, **kwargs)
+
+            task['data'] = self.execute_task(task['handler'], *args, **kwargs)
 
             self.add_to_local_db(task['data'], task['name'], wid)  # update new local variables defined in the function
             self.add_to_global_db(task['data'], wid)
 
-            task = self.update_task_state(action, TaskStates.FINISHED.value)
+            self.update_task_state(action, TaskStates.FINISHED.value)
 
             if not len(self.worklist):
+                print("No tasks pending!!")
                 break
             action_no = input("Choose the next action to perform")

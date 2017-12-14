@@ -1,6 +1,6 @@
 from actionhandler import ActionHandler
 from states import TaskStates
-from copy import copy
+
 
 from database_funcs import Database
 
@@ -37,6 +37,7 @@ class EventHandler:
     def update_task_state(self, act_or_eve, value):
         wid = act_or_eve['workflow_id']
         name = act_or_eve['task']
+        print("Updating state of ",name," to ", value)
         task = self.dbs.find_one_record("Tasks", {"workflow_id": wid, 'name': name})
         temp = task
         task['state'] = value
@@ -45,14 +46,14 @@ class EventHandler:
 
     def fire(self,event_id,*args,**kwargs):
         event = self.dbs.find_one_record("Events",{'_id':event_id})
-        # print("Raising event for ", event['Description'], " finish")
+        print("Raising event for ", event['Description'], "to finish")
         task = self.update_task_state(event, TaskStates.READY.value)
 
         # d = self.actions[event_id])
         # actions = self.dbs.find_many_records("ActionHandler",{"event":event['_id'], "workflow_id":self.workflow_id})
 
         while len(self.ready_queue):
-            action = self.ready_queue.pop(0)
+            action = self.ready_queue.pop()
             # print("Action is", action)
             callback = getattr(self.actionhandler,'execute')
             # print("kwargs:", kwargs)

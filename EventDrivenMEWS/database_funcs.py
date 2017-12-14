@@ -25,3 +25,13 @@ class Database:
     def find_many_records(self, collectionName, record):
         collection = self.db[collectionName]
         return collection.find(record)
+
+    def drop_tables(self):
+        d = Database().db
+        tables = ["Data", "Roles", "Resources", "Actions", "Events", "conditions", "Workflow", "Tasks",
+                  "graph","constants","globals", "Workflow","Exec_data"]
+        for table in tables:
+            try:
+                d[table].drop()
+            except:
+                pass

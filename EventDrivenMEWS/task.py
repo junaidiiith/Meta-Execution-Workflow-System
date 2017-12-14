@@ -10,11 +10,10 @@ dbs = Database()
 class Task:
     __slots__ = ['id','workflow_id', 'affected_objects','name', 'description', 'handler', 'state', 'owner', 'type', 'manual', 'data', 'output_tasks','event','action']
 
-    def __init__(self,wid, name=None,type=None,*args,**kwargs):
+    def __init__(self,wid,*args,**kwargs):
 
         self.workflow_id = wid
-        self.name = name.lower()
-        self.id = name
+        self.id = None
         self.affected_objects = dict()
         self.data = {}
         self.owner = None
@@ -23,28 +22,25 @@ class Task:
         self.manual = False
         self.description = ''
         self.type = type
+        self.event = dict()
+        self.action = dict()
         self.state = TaskStates.NOT_STARTED
 
-
     def set_values(self,**values):
+        self.name = values['name']
         self.handler = values['handler']
         self.affected_objects = values['affected_objects']
         self.owner = values['owner']
-        try:
-            self.output_tasks = values['output_tasks']
-        except:
-            pass
         self.manual = values['manual']
         self.description = values['description']
         self.type = values['type']
-        event = {"workflow_id": self.workflow_id, "task": self.id, "Description": "start " + self.name,  "conditions":[]}
-        action = {"workflow_id":self.workflow_id, "task": self.id, "Description": "finish " + self.name}
+        event = {"workflow_id": self.workflow_id, "task": self.name, "Description": "start " + self.name,  "conditions":[]}
+        action = {"workflow_id":self.workflow_id, "task": self.name, "Description": "finish " + self.name}
         dbs.add_to_database("Events", event)
         dbs.add_to_database("Actions", action)
         self.event = dbs.find_one_record("Events", event)['_id']
         self.action = dbs.find_one_record("Actions", action)['_id']
         self.state = TaskStates.NOT_STARTED.value
-
 
     def get_id(self):
         return self.id
@@ -90,18 +86,14 @@ class Task:
                 data[attr] = getattr(self,attr)
         return data
 
-    def execute(self,**kwargs):
-        pass
-
-
 def create_task(w_id, **values):
 
     try:
         name = values['name'].lower()
     except:
         name = input("Enter the name of the task").lower()
-
-    t = Task(w_id, name)
+    t = Task(w_id)
+    t.id = name
     if not values:
         print("Enter the attributes of the task as a tuple")
         values = dict()
@@ -113,17 +105,19 @@ def create_task(w_id, **values):
         print("Enter the objects to be affected/required")
         values['affected_objects'] = {'global':[], 'local':[]}
         var = input("Enter the global variable names(comma separated)").split(',')
-        values['affected_objects']['global'].append(var)
+        if len(var[0]):
+            values['affected_objects']['global'] = var
         print("Entering local objected required")
         while True:
             taskname = input("Enter the task name") #output is the default name of the output of task
             if not taskname:
                 break
             vars = input("Enter the objects required(comma separated)").split(',')
-            values['affected_objects']['local'].append([taskname,vars])
+            if len(vars[0]):
+                values['affected_objects']['local'].append({taskname: vars})
             nxt = input("Press [Space] to continue adding affected objects and [Enter] to stop")
             if not nxt:
                 break
-
+    values['name'] = name
     t.set_values(**values)
     return t

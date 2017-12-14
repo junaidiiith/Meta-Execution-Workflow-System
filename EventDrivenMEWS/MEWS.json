@@ -16,11 +16,7 @@
     "tasks": [
         {
             "affected_objects": {
-                "global": [
-                    [
-                        "state"
-                    ]
-                ],
+                "global": ["state"],
                 "local": []
             },
             "description": "Starting task of the workflow",
@@ -38,7 +34,7 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "start",
                                         "variable": "state"
                                     },
@@ -57,7 +53,7 @@
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         }
                     ],
                     "task": "create workflow instance"
@@ -68,16 +64,12 @@
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        "state"
-                    ]
-                ],
+                "global": ["state"],
                 "local": []
             },
             "description": "creating a workflow execution instance",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "MetaExecutionWorkflow.tasks",
                 "Tasks",
                 "create_workflow_instance"
             ],
@@ -90,7 +82,7 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "create workflow instance",
                                         "variable": "state"
                                     },
@@ -109,13 +101,13 @@
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         },
                         {
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "execute",
                                         "variable": "state"
                                     },
@@ -134,16 +126,12 @@
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        ""
-                    ]
-                ],
+                "global": [],
                 "local": []
             },
             "description": "Getting the next task from the user workflow",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "MetaExecutionWorkflow.tasks",
                 "Tasks",
                 "get_a_task"
             ],
@@ -156,7 +144,7 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "get a task",
                                         "variable": "state"
                                     },
@@ -175,23 +163,16 @@
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        ""
-                    ]
-                ],
+                "global": [],
                 "local": [
-                    [
-                        "get a task",
-                        [
-                            "output"
-                        ]
-                    ]
+                  {
+                    "get a task": ["output"]
+                  }
                 ]
             },
             "description": "Checking the task if null or not",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "MetaExecutionWorkflow.tasks",
                 "Tasks",
                 "check_task"
             ],
@@ -204,7 +185,7 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "check task",
                                         "variable": "state"
                                     },
@@ -218,7 +199,7 @@
                             "expression": {
                                 "constant": "True",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "check task",
                                         "variable": "output"
                                     },
@@ -226,7 +207,7 @@
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         }
                     ],
                     "task": "check resources"
@@ -237,7 +218,7 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "check task",
                                         "variable": "state"
                                     },
@@ -251,7 +232,7 @@
                             "expression": {
                                 "constant": "False",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "check task",
                                         "variable": "output"
                                     },
@@ -259,7 +240,7 @@
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         }
                     ],
                     "task": "end"
@@ -270,23 +251,16 @@
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        ""
-                    ]
-                ],
+                "global": [],
                 "local": [
-                    [
-                        "get a task",
-                        [
-                            "output"
-                        ]
-                    ]
+                  {
+                    "get a task": ["output"]
+                  }
                 ]
             },
             "description": "Checking if resources available",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "MetaExecutionWorkflow.tasks",
                 "Tasks",
                 "check_resources"
             ],
@@ -299,7 +273,7 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "check resources",
                                         "variable": "state"
                                     },
@@ -311,9 +285,9 @@
                         },
                         {
                             "expression": {
-                                "constant": "True",
+                                "constant": "available",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "check resources",
                                         "variable": "output"
                                     },
@@ -321,7 +295,7 @@
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         }
                     ],
                     "task": "execute"
@@ -332,23 +306,16 @@
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        ""
-                    ]
-                ],
+                "global": [],
                 "local": [
-                    [
-                        "get a task",
-                        [
-                            "output"
-                        ]
-                    ]
+                  {
+                    "get a task": ["output"]
+                  }
                 ]
             },
             "description": "Executing the task of user workflow",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "MetaExecutionWorkflow.tasks",
                 "Tasks",
                 "execute"
             ],
@@ -361,7 +328,7 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "create workflow instance",
                                         "variable": "state"
                                     },
@@ -380,13 +347,13 @@
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         },
                         {
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "execute",
                                         "variable": "state"
                                     },
@@ -405,16 +372,12 @@
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        "state"
-                    ]
-                ],
+                "global": ["state"],
                 "local": []
             },
             "description": "Ending task of the meta execution",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "MetaExecutionWorkflow.tasks",
                 "Tasks",
                 "end"
             ],

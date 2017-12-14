@@ -1,13 +1,13 @@
 {
     "constants": {
-        "RS": "not started"
+        "cutoff": "7"
     },
-    "description": "Meta Execution Workflow",
+    "description": "Admission process",
     "globals": {
         "state": "not started"
     },
     "resources": [
-        "MetaExecutionWorkflow.tasks"
+        "Userworkflow.tasks"
     ],
     "roles": [
         "admin",
@@ -16,16 +16,12 @@
     "tasks": [
         {
             "affected_objects": {
-                "global": [
-                    [
-                        "state"
-                    ]
-                ],
+                "global": ["state"],
                 "local": []
             },
-            "description": "Starting task of the workflow",
+            "description": "starting task",
             "handler": [
-                "MetaExecutionWorkflow.tasks",
+                "Userworkflow.tasks",
                 "Tasks",
                 "start"
             ],
@@ -38,7 +34,7 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
+                                    "task": {
                                         "name": "start",
                                         "variable": "state"
                                     },
@@ -57,32 +53,28 @@
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         }
                     ],
-                    "task": "create workflow instance"
+                    "task": "add application"
                 }
             ],
             "owner": "admin",
-            "type": "meta"
+            "type": "user"
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        "state"
-                    ]
-                ],
+                "global": [],
                 "local": []
             },
-            "description": "creating a workflow execution instance",
+            "description": "adding appliction",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "Userworkflow.tasks",
                 "Tasks",
-                "create_workflow_instance"
+                "add_application"
             ],
             "manual": "False",
-            "name": "create workflow instance",
+            "name": "add application",
             "output_tasks": [
                 {
                     "conditions": [
@@ -90,8 +82,8 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
-                                        "name": "create workflow instance",
+                                    "task": {
+                                        "name": "add application",
                                         "variable": "state"
                                     },
                                     "type": "local"
@@ -102,101 +94,47 @@
                         },
                         {
                             "expression": {
-                                "constant": "running",
+                                "constant": "7",
                                 "operand": {
-                                    "type": "global",
-                                    "variable": "state"
-                                },
-                                "operator": "=="
-                            },
-                            "type": "1"
-                        },
-                        {
-                            "expression": {
-                                "constant": "finished",
-                                "operand": {
-                                    "expression": {
-                                        "name": "execute",
-                                        "variable": "state"
+                                    "task": {
+                                        "name": "add application",
+                                        "variable": "cgpa"
                                     },
                                     "type": "local"
                                 },
-                                "operator": "=="
+                                "operator": ">="
                             },
                             "type": "Arithmetic"
                         }
                     ],
-                    "task": "get a task"
+                    "task": "check cgpa"
                 }
             ],
-            "owner": "admin",
-            "type": "meta"
+            "owner": "user",
+            "type": "user"
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        ""
-                    ]
-                ],
-                "local": []
-            },
-            "description": "Getting the next task from the user workflow",
-            "handler": [
-                "MetaExecutionWorkfow.tasks",
-                "Tasks",
-                "get_a_task"
-            ],
-            "manual": "False",
-            "name": "get a task",
-            "output_tasks": [
-                {
-                    "conditions": [
-                        {
-                            "expression": {
-                                "constant": "finished",
-                                "operand": {
-                                    "expression": {
-                                        "name": "get a task",
-                                        "variable": "state"
-                                    },
-                                    "type": "local"
-                                },
-                                "operator": "=="
-                            },
-                            "type": "Arithmetic"
-                        }
-                    ],
-                    "task": "check task"
-                }
-            ],
-            "owner": "admin",
-            "type": "meta"
-        },
-        {
-            "affected_objects": {
-                "global": [
-                    [
-                        ""
-                    ]
-                ],
+                "global": [],
                 "local": [
-                    [
-                        "get a task",
+                    {
+                        "add application":
                         [
-                            "output"
+                            "email",
+                            "name",
+                            "phone"
                         ]
-                    ]
+                    }
                 ]
             },
-            "description": "Checking the task if null or not",
+            "description": "Checking cpa",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "Userworkflow.tasks",
                 "Tasks",
-                "check_task"
+                "check_cgpa"
             ],
             "manual": "False",
-            "name": "check task",
+            "name": "check cgpa",
             "output_tasks": [
                 {
                     "conditions": [
@@ -204,8 +142,8 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
-                                        "name": "check task",
+                                    "task": {
+                                        "name": "check cgpa",
                                         "variable": "state"
                                     },
                                     "type": "local"
@@ -218,18 +156,18 @@
                             "expression": {
                                 "constant": "True",
                                 "operand": {
-                                    "expression": {
-                                        "name": "check task",
+                                    "task": {
+                                        "name": "check cgpa",
                                         "variable": "output"
                                     },
                                     "type": "local"
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         }
                     ],
-                    "task": "check resources"
+                    "task": "call interview"
                 },
                 {
                     "conditions": [
@@ -237,8 +175,8 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
-                                        "name": "check task",
+                                    "task": {
+                                        "name": "check cgpa",
                                         "variable": "state"
                                     },
                                     "type": "local"
@@ -251,47 +189,45 @@
                             "expression": {
                                 "constant": "False",
                                 "operand": {
-                                    "expression": {
-                                        "name": "check task",
+                                    "task": {
+                                        "name": "check cgpa",
                                         "variable": "output"
                                     },
                                     "type": "local"
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         }
                     ],
-                    "task": "end"
+                    "task": "reject application"
                 }
             ],
             "owner": "admin",
-            "type": "meta"
+            "type": "user"
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        ""
-                    ]
-                ],
+                "global": [],
                 "local": [
-                    [
-                        "get a task",
+                    {
+                        "add application":
                         [
-                            "output"
+                            "email",
+                            "name",
+                            "phone"
                         ]
-                    ]
+                    }
                 ]
             },
-            "description": "Checking if resources available",
+            "description": "Calling for interview",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "Userworkflow.tasks",
                 "Tasks",
-                "check_resources"
+                "call_interview"
             ],
             "manual": "False",
-            "name": "check resources",
+            "name": "call interview",
             "output_tasks": [
                 {
                     "conditions": [
@@ -299,8 +235,8 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
-                                        "name": "check resources",
+                                    "task": {
+                                        "name": "call interview",
                                         "variable": "state"
                                     },
                                     "type": "local"
@@ -313,47 +249,73 @@
                             "expression": {
                                 "constant": "True",
                                 "operand": {
-                                    "expression": {
-                                        "name": "check resources",
+                                    "task": {
+                                        "name": "call interview",
                                         "variable": "output"
                                     },
                                     "type": "local"
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
+                        },
+                        {
+                            "expression": {
+                                "constant": "finished",
+                                "operand": {
+                                    "task": {
+                                        "name": "reject application",
+                                        "variable": "state"
+                                    },
+                                    "type": "local"
+                                },
+                                "operator": "=="
+                            },
+                            "type": "Arithmetic"
+                        },
+                        {
+                            "expression": {
+                                "constant": "True",
+                                "operand": {
+                                    "task": {
+                                        "name": "reject application",
+                                        "variable": "=="
+                                    },
+                                    "type": "local"
+                                },
+                                "operator": "True"
+                            },
+                            "type": "Arithmetic"
                         }
                     ],
-                    "task": "execute"
+                    "task": "end"
                 }
             ],
             "owner": "admin",
-            "type": "meta"
+            "type": "user"
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        ""
-                    ]
-                ],
+                "global": [],
                 "local": [
-                    [
-                        "get a task",
+                    {
+                        "add application":
                         [
-                            "output"
+                            "email",
+                            "name",
+                            "phone"
                         ]
-                    ]
+                    }
                 ]
             },
-            "description": "Executing the task of user workflow",
+            "description": "Rejecting application",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "Userworkflow.tasks",
                 "Tasks",
-                "execute"
+                "reject_application"
             ],
             "manual": "False",
-            "name": "execute",
+            "name": "reject application",
             "output_tasks": [
                 {
                     "conditions": [
@@ -361,8 +323,8 @@
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
-                                        "name": "create workflow instance",
+                                    "task": {
+                                        "name": "call interview",
                                         "variable": "state"
                                     },
                                     "type": "local"
@@ -373,21 +335,24 @@
                         },
                         {
                             "expression": {
-                                "constant": "running",
+                                "constant": "True",
                                 "operand": {
-                                    "type": "global",
-                                    "variable": "state"
+                                    "task": {
+                                        "name": "call interview",
+                                        "variable": "output"
+                                    },
+                                    "type": "local"
                                 },
                                 "operator": "=="
                             },
-                            "type": "1"
+                            "type": "Arithmetic"
                         },
                         {
                             "expression": {
                                 "constant": "finished",
                                 "operand": {
-                                    "expression": {
-                                        "name": "execute",
+                                    "task": {
+                                        "name": "reject application",
                                         "variable": "state"
                                     },
                                     "type": "local"
@@ -395,26 +360,36 @@
                                 "operator": "=="
                             },
                             "type": "Arithmetic"
+                        },
+                        {
+                            "expression": {
+                                "constant": "True",
+                                "operand": {
+                                    "task": {
+                                        "name": "reject application",
+                                        "variable": "=="
+                                    },
+                                    "type": "local"
+                                },
+                                "operator": "True"
+                            },
+                            "type": "Arithmetic"
                         }
                     ],
-                    "task": "get a task"
+                    "task": "end"
                 }
             ],
             "owner": "admin",
-            "type": "met"
+            "type": "user"
         },
         {
             "affected_objects": {
-                "global": [
-                    [
-                        "state"
-                    ]
-                ],
+                "global": ["state"],
                 "local": []
             },
-            "description": "Ending task of the meta execution",
+            "description": "Ending task",
             "handler": [
-                "MetaExecutionWorkfow.tasks",
+                "Userworkflow.tasks",
                 "Tasks",
                 "end"
             ],
@@ -422,9 +397,9 @@
             "name": "end",
             "output_tasks": [],
             "owner": "admin",
-            "type": "meta"
+            "type": "user"
         }
     ],
-    "title": "MEWS",
-    "type": "meta"
+    "title": "admission workflow",
+    "type": "user"
 }

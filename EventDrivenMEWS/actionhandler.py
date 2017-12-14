@@ -1,6 +1,7 @@
 from states import TaskStates
 import database_funcs
 import operator
+import sys
 
 
 class ActionHandler:
@@ -18,10 +19,9 @@ class ActionHandler:
         self.dbf = database_funcs.Database()
 
     def add_to_worklist(self,action, role, wid):
-
         record = {'role': role}
         user = self.dbf.find_one_record("Users", record)['_id']
-        record = {"user_id": user, 'action': action['_id'], "workflow_id":wid}
+        record = {"user_id": user, 'action': action['_id'], "workflow_id": wid}
         self.dbf.add_to_database("Worklist", record)
 
     def get_response(self, action, user, wid):
@@ -31,50 +31,79 @@ class ActionHandler:
                 continue
             return  self.dbf.find_one_record("Response", record)
 
-    def add_to_local_db(self, data, task_id, wid):
-        if not data or len(data.keys()) == 0:
+    def update_local(self, task_data, local_vars, task_id, wid):
+        if not task_data or len(task_data.keys()) == 0:
             return
-        for var, value in data.items():
-            record = {'type':'local', 'task_id': task_id, 'variable':var, "workflow_id":wid}
-            d = self.dbf.find_one_record("Data", record)
+        # print("Local vars", local_vars)
+        for var in local_vars:
+            record = {'type':'local', 'task': task_id, 'variable':var, "workflow_id": wid}
+            d = self.dbf.find_one_record("Exec_data", record)
             if not d:
-                record["value"] = value
-                self.dbf.add_to_database("Data", record)
+                record["value"] = task_data[var]
+                # print("Adding record", record)
+                self.dbf.add_to_database("Exec_data", record)
             else:
-                self.dbf.update_record("Data", record, {"value": value})
+                self.dbf.update_record("Exec_data", record, {"value": task_data[var]})
 
-    def add_to_global_db(self, task_data, wid):
+    def update_global(self, task_data, global_objects, wid):
 
         if not task_data or len(task_data.keys()) == 0:
             return
+        print("Updating ",global_objects,"to ",task_data)
+        for obj in global_objects:
+            newrecord = {"type": "global", "variable": obj, "workflow_id":wid}
+            d = self.dbf.find_one_record("Exec_data", newrecord)
+            if not d:
+                newrecord['value'] = task_data[obj]
+                self.dbf.add_to_database("Exec_data",newrecord)
+                # print("Added ", self.dbf.find_one_record("Exec_data", newrecord))
+            else:
+                self.dbf.update_record("Exec_data",newrecord,{"value": task_data[obj]})
 
-        for k,v in task_data.items():
-            newrecord = {"type":"global", 'variable':k,'value': v, "workflow_id":wid}
-            self.dbf.add_to_database("Data",newrecord)
-
-    def find_in_global(self, var, wid):
-
-        record = {"type":'global','variable':var, "workflow_id":wid}
+    def find_global(self, var, wid):
+        # print("Trying to find global variable", var)
+        record = {"type":'global','variable':var, "workflow_id": wid}
         try:
-            x = self.dbf.find_one_record("Data",record)
-            # print("Xis", x)
+            x = self.dbf.find_one_record("Exec_data", record)
             return x['value']
         except:
             print("Record not found for global variable", var)
+            return None
 
-    def find_in_local(self, var, tid, wid):
-        record = {"type":'local','variable':var, "task_id": tid,  "workflow_id":wid}
+    def find_local(self, var, tid, wid):
+        record = {"type":'local','variable':var, "task": tid,  "workflow_id":wid}
         try:
-            return self.dbf.find_one_record("Data",record)['value']
+            return self.dbf.find_one_record("Exec_data",record)['value']
         except:
-            print("Record not found for local variable", var)
+            print("Record not found for local variable", var, " for task ", tid)
+            return None
+
+    def get_global_vars(self, task):
+        if task['data']:
+            global_vars = task['affected_objects']['global']
+            return list(set(task['data'].keys()).intersection(set(global_vars)))
+        return None
+
+    def get_local_vars(self, task):
+        if task['data']:
+            data = list(task['data'].keys())
+            if "ueh" in data:
+                data.remove("ueh")
+            if "uw" in data:
+                data.remove("uw")
+
+            global_vars = task['affected_objects']['global']
+            local_vars = list(set(data) - set(global_vars))
+            # print(global_vars,data, local_vars)
+            return local_vars
+        return None
 
     def cmp(self, arg1, op, arg2):
         operation = self.ops.get(op)
         return operation(arg1, arg2)
 
     def evaluate_condition(self, condition):
-        # print("Evaluating",condition)
+        print("Evaluating",condition['expression'])
         wid = condition['workflow_id']
         condition_expr = condition['expression']
         if not condition:
@@ -83,59 +112,55 @@ class ActionHandler:
         operand = condition_expr['operand']
         operator = condition_expr['operator']
         constant = condition_expr['constant']
-
         if operand['type'] == 'global':
-            return True
-            op_val = self.find_in_global(operand['variable'], wid)
-            return self.cmp(op_val ,operator , constant)
+            # return True
+            op_val = self.find_global(operand['variable'], wid)
+            print("Checking global condition...")
+            if self.cmp(op_val, operator, constant):
+                print("Condition is true")
+                return  True
+            else:
+                print("Condition is false")
+                return False
         else:
-            exp = operand['expression']
+            print("Checking local condition...")
+            exp = operand['task']
             t_name = exp['name']
             var = exp['variable']
-            op_val = self.find_in_local(var, t_name, wid)
-            if op_val == None:
+            op_val = self.find_local(var, t_name, wid)
+            # print("Operator value is", op_val)
+            if op_val is None:
+                print("True condition")
                 return True
-            if type(op_val) == bool:
+            if type(op_val) != str:
                 op_val = str(op_val)
-            # if op_val == "True" or op_val == "False":
-            #     op_val = bool(op_val)
 
-            # if constant == "True" or constant == "False":
-            #     constant = bool(constant)
-            print(op_val, operator, constant)
-            # if not op_val:
-            #     return True   #For the cases when the task is not yet executed but is a previous task of the task whose event is being evaluated
-            return self.cmp(op_val,operator,constant)
+            if self.cmp(op_val,operator,constant):
+                print("Condition true")
+                return True
+            print("Condition false")
+            return False
 
     def update_task_state(self, act_or_eve, value):
-        # print("Updating task state to ", value)
+        print("Updating task state to ", value)
+        task = self.dbf.find_one_record("Tasks", {"action": act_or_eve['_id']})
         wid = act_or_eve['workflow_id']
         name = act_or_eve['task']
-        self.dbf.update_record("Data",{"workflow_id":wid,"task_id":name, "type":"local", "variable":"state"},{"value":value.lower()})
-        task = self.dbf.find_one_record("Tasks", {"workflow_id": wid, 'name': name})
+        # if task['type'] == "user":
+        #     print("Updating state for ", name)
+        #     print({"workflow_id": wid, "task_id": name, "type": "local", "variable": "state"})
+        self.dbf.update_record("Exec_data",{"workflow_id": wid,"task": name,
+                                            "type":"local", "variable":"state"},{"value":value})
+
         return task
 
     def get_conditions(self, cids):
         conditions = []
-        for task_c in cids:
-            for c in task_c:
-                r = self.dbf.find_one_record("conditions", {'_id':c})
-                conditions.append(r)
+        for cid in cids:
+            r = self.dbf.find_one_record("conditions", {'_id': cid})
+            conditions.append(r)
 
         return conditions
-
-    def update_global(self, global_vars, data, wid):
-        # print(data)
-        # print("Updating global variables", global_vars)
-        for var in global_vars:
-            var = var[0]
-            if not len(var):
-                continue
-
-            old = self.find_in_global(var, wid)
-            new = {"value": data[var]}
-
-            self.dbf.update_record("Data",{"workflow_id":wid, "variable": var}, new)
 
     def my_import(self, name):
         __import__(name.rsplit('.', 1)[0])
@@ -148,74 +173,122 @@ class ActionHandler:
 
     def execute_task(self, handler, *args, **kwargs):
 
-        x = handler.rsplit('.', 1)
-        cls, func = self.my_import(x[0])(*args, **kwargs), x[1]
+        cls, func = self.my_import(handler[0]+'.'+handler[1])(*args, **kwargs), handler[-1]
         callback = getattr(cls, func)
 
-        d = dict()
-        d['output'] = callback(*args, **kwargs) or None
+        d = callback(*args, **kwargs) or None
         return d
 
+    def wait_till_complete(self, action):
+
+        tname = self.dbf.find_one_record("Tasks",{"action": action['_id']})['name']
+        record = {"workflow_id": action['workflow_id'], "type": "local", "variable": "state",
+                                           "value": "finished", "task":tname }
+        output = self.dbf.find_one_record("Exec_data",
+                                          record)
+        # print("Output is", output)
+        print("Waiting for agent to respond....")
+        while not output:
+            # print("Output is", output)
+            output = self.dbf.find_one_record("Exec_data",
+                                              record)
+            # print("Output is", output)
 
     def execute(self,action, *args, **kwargs):
         # print("kwargs:", kwargs)
         assert action is not None
-        action = self.dbf.find_one_record("Actions",{'_id':action})
-        # print("Action is ", action['Description'])
+
+        action = self.dbf.find_one_record("Actions", {'_id': action})
         task = self.update_task_state(action, TaskStates.READY.value)
+
         wid = action['workflow_id']
         # print(task)
 
         if task['manual'] == "True":
             print("Adding task to worklist of ", task['owner'])
+            # print("Action is", action)
             self.add_to_worklist(action, task['owner'], wid)
-
+            self.wait_till_complete(action)
         else:
-            for arg in task['affected_objects']['global']:
-                for argument in arg:
-                    if len(argument) == 0:
-                        continue
-                    val = self.find_in_global(argument, wid)
-                    kwargs[argument] = val
-                    # print("global", argument, val)
+            # print("In local!!")
+            if task['type'] == 'user':
+                print("--User task execution--", task['name'])
 
-            for arg in task['affected_objects']['local']:
-                t_id = arg[0]
-                for var in arg[1]:
-                    val = self.find_in_local(var, t_id, wid)
-                    kwargs[var] = val
-                    # print("local", var, val)
+            for argument in task['affected_objects']['global']:
+                print("-------------Finding global variables values-------------")
+                print(argument)
+                val = self.find_global(argument, wid)
+                kwargs[argument] = val
+                # print("global", argument, val)
 
+            local_argument_list = []
+
+            for local_affects in task['affected_objects']['local']:
+                key = list(local_affects.keys())[0]
+                vals = local_affects[key]
+                for val in vals:
+                    if self.find_local(val, key, wid) is not None:
+                        value = self.find_local(val, key, wid)
+                        local_argument_list.append(value)
+
+            # print("local arguement list", local_argument_list)
             handler = task['handler']
             task = self.update_task_state(action, TaskStates.RUNNING.value)
 
             # task['data'] =  #output as the output variable of every task
-            task['data'] = self.execute_task(handler, *args, **kwargs)
+            # print("Data before", kwargs)
+            print("Executing", task['name'])
+            task['data'] = self.execute_task(handler, *local_argument_list, **kwargs)
+            print("Data after", task['data'])
 
-        self.add_to_local_db(task['data'], task['id'], wid) #update new local variables defined in the function
+        self.update_local(task['data'],self.get_local_vars(task), task['name'], wid) #update new local variables defined in the function
+        self.update_global(task['data'], self.get_global_vars(task), wid) #update global variables
 
-        self.update_global(task['affected_objects']['global'], kwargs, wid)
-
+        # print("Updating task state of", task['name'], ' to finished')
         task = self.update_task_state(action, TaskStates.FINISHED.value)
 
-        for event in action['output_events']:
-            event = self.dbf.find_one_record("Events", {'_id':event})
-            print("Trying to raise events for", event['Description'])
+        out_events = action['output_events']
+        # print(action)
+        # print("Output events of ",task['name'],out_events)
+        if len(out_events) > 1:
+            # print("Multiple and condition case")
+            for event in out_events:
+                event = self.dbf.find_one_record("Events", {'_id': event})
+                # print("Trying to raise events for", event['Description'])
+                c_ids = event['conditions']
+                # print(c_ids)
+                conditions = self.get_conditions(c_ids)
+                found = True
+                for condition in conditions:
+                    if not self.evaluate_condition(condition):
+                        found = False
+                if found:
+                    self.eventhandler.add_event(event)
+                    # print("Adding state variable to", event['task'])
+                    record = {'workflow_id': wid, "type": "local",
+                              "variable": "state", "value": "not started", "task": event['task']}
+                    self.dbf.add_to_database("Exec_data", record)
+                    # print("Added ", self.dbf.find_one_record("Exec_data", record))
+        elif len(out_events) == 1:
+            # print("Simple xor or series condition case!")
+            event = self.dbf.find_one_record("Events",{"_id":out_events[0]})
+            if task['type'] == 'user':
+                print("Trying to raise events for", event['Description'])
             c_ids = event['conditions']
             conditions = self.get_conditions(c_ids)
             found = False
-            condition_type = event['condition_type']
-            c = False
             for condition in conditions:
-                print("Condition is", condition['expression'])
-                if self.evaluate_condition(condition):
-                    print("Condition true")
-                    if condition['expression']['operand']['type'] == "local" and\
-                                    condition['expression']['constant'] == "finished" and condition_type == "or":
-                        break
-                else:
-                    print("Condition false")
+                # print("condition:",condition['expression']['operand'])
+                operand = condition['expression']['operand']
+                if not self.evaluate_condition(condition):
                     found = True
-
-            if not found or c:
+                    print("Unexpected condition.....")
+            if not found:
                 self.eventhandler.add_event(event)
+            # print("Adding state variable to", task)
+                record = {'workflow_id': wid, "type": "local",
+                                                   "variable": "state", "value": "not started", "task": event['task']}
+                self.dbf.add_to_database("Exec_data", record)
+            # print("Added ", self.dbf.find_one_record("Exec_data",record))
+
+

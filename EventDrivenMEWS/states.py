@@ -2,7 +2,8 @@ from enum import Enum
 
 
 class TaskStates(Enum):
-    NOT_STARTED = "Not yet started"
-    READY = "Ready"
-    RUNNING = "RUNNING"
-    FINISHED = "FINISHED"
+    NOT_STARTED = "not started"
+    STARTED = "started"
+    READY = "ready"
+    RUNNING = "running"
+    FINISHED = "finished"
