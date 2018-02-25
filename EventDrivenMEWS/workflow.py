@@ -42,7 +42,6 @@ class Workflow:
         self.content = self.store()
         print("-----------------Workflow object creation successful-------------")
 
-
     def define_roles(self, json_file=None):
         if json_file:
             for role in json_file['roles']:
