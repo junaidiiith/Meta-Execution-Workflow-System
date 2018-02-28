@@ -1,4 +1,0 @@
-1) A task having workflow id
-from workflow import Workflow
-w = Workflow("MEWS","meta","Meta exec workflow")
-w.load_tasks("Meta_tasks.json"
