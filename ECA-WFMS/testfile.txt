@@ -1,0 +1,81 @@
+meta execution workflow
+meta
+A meta execution workflow
+
+role1
+role2
+
+src1
+src2
+
+var1
+val1
+var2
+val2
+
+glob1
+val1
+glob2
+val2
+
+1
+get a task
+Getting a task of user workflow
+workflow_started
+task_executed
+
+got_the_task
+
+user_workflow_id
+
+task_name
+
+1
+get a task
+Getting a task of user workflow
+workflow_started
+
+got_the_task
+
+user_workflow_id
+
+task_name
+
+2
+check task
+checking a task of user workflow
+got_the_task
+
+task_available
+
+user_workflow_id
+task_name
+
+task_availability
+
+3
+check resources
+checking resources of the user workflow task
+task_available
+
+resources_available
+resources_unavailable
+
+task_availibility
+user_workflow_id
+
+resources
+
+
+4
+execute task
+Executing a task of user workflow
+resources_available
+
+task_executed
+
+user_workflow_id
+
+task_data
+
+
