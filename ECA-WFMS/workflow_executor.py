@@ -4,13 +4,17 @@ from .event_queue import EventQueue
 from .workflow import Workflow
 from EventDrivenMEWS.mongo_database import Database as Db
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> fb78d41550d471ef727838696ff62068320965e6
 class Executor(object):
     def __init__(self, meta_workflow, user_workflow):
         self._meta_workflow = Workflow(meta_workflow)
         self._user_workflow = Workflow(user_workflow)
         self.meta_dispatcher = EventDispatcher()
         self.user_dispatcher = EventDispatcher()
+<<<<<<< HEAD
         self.register_events(self.meta_dispatcher, meta_workflow)
         self.register_events(self.user_dispatcher, user_workflow)
         self.meta_event_q = EventQueue(self.meta_workflow.start)
@@ -18,6 +22,15 @@ class Executor(object):
 
     def register_events(self, dispatcher, workflow_id):
         events = Db().find_many_records("Events", {'workflow_id': workflow_id})
+=======
+        self.register_events(self.meta_dispatcher)
+        self.register_events(self.user_dispatcher)
+        self.meta_event_q = EventQueue(self.meta_workflow.start)
+        self.user_event_q = EventQueue(self.user_workflow.start)
+
+    def register_events(self, dispatcher):
+        events = Db().find_many_records("Events", {})
+>>>>>>> fb78d41550d471ef727838696ff62068320965e6
         for event in events:
             rules = event['rules']
             for rule in rules:
