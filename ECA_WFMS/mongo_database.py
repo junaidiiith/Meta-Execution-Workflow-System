@@ -30,7 +30,7 @@ class Database:
     def drop_tables(self):
         d = Database().db
         tables = ["Roles", "Resources", "Actions", "Events", "Conditions", "Workflow", "Tasks",
-                "Constants", "Globals"]
+                "Constants", "Globals", "Rules"]
         for table in tables:
             try:
                 d[table].drop()

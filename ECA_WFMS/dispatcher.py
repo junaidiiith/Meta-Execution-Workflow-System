@@ -1,11 +1,8 @@
-<<<<<<< HEAD
-from EventDrivenMEWS.mongo_database import Database
+from mongo_database import Database
 from .condition import Condition
 db = Database()
 
 
-=======
->>>>>>> fb78d41550d471ef727838696ff62068320965e6
 class EventDispatcher(object):
     """
     Generic event dispatcher which listen and dispatch events
@@ -48,7 +45,6 @@ class EventDispatcher(object):
         return d
 
     def process_rule(self, rule, event, *args, **kwargs):
-<<<<<<< HEAD
         rule_data = db.find_one_record("Rules", {'_id': rule})
         condition = Condition(db.find_one_record("Conditions", {'_id': rule_data['condition']}))
         action = db.find_one_record("Actions", {'_id': rule_data['action']})
@@ -60,22 +56,12 @@ class EventDispatcher(object):
             data = {**data, **output}
             db.update_record('Exec_data', {"workflow_id": rule['workflow_id']}, data)
             return action['raised_events']
-=======
-        data = DB.get('Data', {'_id': event.task.id})
-        data = {**data, **Db.get('Data', 'global_data')}
-        action = rule.action
-        condition = rule.condition
-        if condition.check(data):
-            output = self.run_handler(action, event.data, *args, **kwargs)
-            DB.update('Data', **output)
->>>>>>> fb78d41550d471ef727838696ff62068320965e6
 
     def dispatch_event(self, event, *args, **kwargs):
         """
         Dispatch an instance of Event class
         """
         # Dispatch the event to all the associated listeners
-<<<<<<< HEAD
         event_data = db.find_one_record("Events", {'_id', event})
         raised_events = []
         if event['name'] in self._events.keys():
@@ -84,15 +70,6 @@ class EventDispatcher(object):
             for rule in rules:
                 r_events = self.process_rule(rule, event_data, *args, **kwargs)
                 raised_events.append(r_events)
-=======
-        raised_events = []
-        if event.type in self._events.keys():
-            rules = self._events[event.type]
-
-            for rule in rules:
-                self.process_rule(rule, event, *args, **kwargs)
-                raised_events.append(rule.action.events)
->>>>>>> fb78d41550d471ef727838696ff62068320965e6
         return raised_events
 
     def add_event_listener(self, event_type, listener):
@@ -124,7 +101,3 @@ class EventDispatcher(object):
                 listeners.remove(listener)
 
                 self._events[event_type] = listeners
-<<<<<<< HEAD
-
-=======
->>>>>>> fb78d41550d471ef727838696ff62068320965e6

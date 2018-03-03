@@ -12,8 +12,4 @@ class EventQueue(object):
         self.current_event = self.queue[0]
 
     def push(self, event):
-<<<<<<< HEAD
         self.queue.append(event)
-=======
-        self.queue.append(event)
->>>>>>> fb78d41550d471ef727838696ff62068320965e6
