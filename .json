@@ -1,0 +1,134 @@
+{
+    "actions": [
+        {
+            "affected_objects": [],
+            "handler": "mcf",
+            "name": "A1",
+            "raised_events": [
+                "WORKFLOW_ENDED"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "handler": "",
+            "name": "A2",
+            "raised_events": [
+                "END_WORKFLOW"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "handler": "",
+            "name": "A3",
+            "raised_events": [
+                "WORKFLOW_STARTED"
+            ]
+        }
+    ],
+    "conditions": [
+        {
+            "constant": "2",
+            "name": "C1",
+            "operand": "2",
+            "operator": "=="
+        },
+        {
+            "constant": "1",
+            "name": "C2",
+            "operand": "1",
+            "operator": "=="
+        },
+        {
+            "constant": "3",
+            "name": "C3",
+            "operand": "3",
+            "operator": "=="
+        }
+    ],
+    "constants": {},
+    "description": "",
+    "events": [
+        {
+            "affected_objects": [],
+            "name": "START_WORKFLOW",
+            "rules": [
+                "R3"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "WORKFLOW_STARTED",
+            "rules": [
+                "R2"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "END_WORKFLOW",
+            "rules": [
+                "R1"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "WORKFLOW_ENDED",
+            "rules": []
+        }
+    ],
+    "globals": {
+        "state": "Not started"
+    },
+    "resources": [],
+    "roles": [],
+    "rules": [
+        {
+            "action": "A1",
+            "condition": "C1",
+            "name": "R1"
+        },
+        {
+            "action": "A2",
+            "condition": "C2",
+            "name": "R2"
+        },
+        {
+            "action": "A3",
+            "condition": "C3",
+            "name": "R3"
+        }
+    ],
+    "tasks": [
+        {
+            "description": "starting task of a workflow",
+            "input_events": [
+                "START_WORKFLOW"
+            ],
+            "input_params": [],
+            "name": "start",
+            "output_events": [
+                "WORKFLOW_STARTED"
+            ],
+            "output_params": [
+                "state"
+            ],
+            "workflow_id": "202f5361-d1f2-4af2-bcbd-26ed3e238d6b"
+        },
+        {
+            "description": "ending task of a workflow",
+            "input_events": [
+                "END_WORKFLOW"
+            ],
+            "input_params": [],
+            "name": "end",
+            "output_events": [
+                "WORKFLOW_ENDED"
+            ],
+            "output_params": [
+                "state"
+            ],
+            "workflow_id": "202f5361-d1f2-4af2-bcbd-26ed3e238d6b"
+        }
+    ],
+    "title": "",
+    "type": ""
+}
