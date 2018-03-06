@@ -1,0 +1,281 @@
+{
+    "actions": [
+        {
+            "affected_objects": {
+                "globals": [],
+                "local": [
+                    [
+                        "start",
+                        "state"
+                    ]
+                ]
+            },
+            "handler": "Metahandlers.tasks.change_state",
+            "name": "START WORKFLOW",
+            "raised_events": [
+                "WORKFLOW_STARTED"
+            ]
+        },
+        {
+            "affected_objects": {
+                "globals": [],
+                "local": [
+                    [
+                        "start",
+                        "state"
+                    ]
+                ]
+            },
+            "handler": "Metahandlers.tasks.change_state",
+            "name": "START WORKFLOW",
+            "raised_events": [
+                "WORKFLOW_STARTED"
+            ]
+        },
+        {
+            "affected_objects": {
+                "globals": [],
+                "local": [
+                    [
+                        "start",
+                        "state"
+                    ]
+                ]
+            },
+            "handler": "Metahandlers.tasks.change_state",
+            "name": "FINISHED START RAISE END TASK",
+            "raised_events": [
+                "END_WORKFLOW"
+            ]
+        },
+        {
+            "affected_objects": {
+                "globals": [],
+                "local": [
+                    [
+                        "end",
+                        "state"
+                    ]
+                ]
+            },
+            "handler": "Metahandlers.tasks.end",
+            "name": "END WORKFLOW",
+            "raised_events": [
+                "WORKFLOW_ENDED"
+            ]
+        },
+        {
+            "affected_objects": {
+                "globals": [],
+                "local": [
+                    [
+                        "end",
+                        "state"
+                    ]
+                ]
+            },
+            "handler": "Metahandlers.tasks.end",
+            "name": "END WORKFLOW",
+            "raised_events": [
+                "WORKFLOW_ENDED"
+            ]
+        }
+    ],
+    "conditions": [
+        {
+            "constant": "not started",
+            "name": "C1",
+            "operand": {
+                "task_name": "start",
+                "type": "local",
+                "variable": "state"
+            },
+            "operator": "=="
+        },
+        {
+            "constant": "not started",
+            "name": "C2",
+            "operand": {
+                "type": "global",
+                "variable": "state"
+            },
+            "operator": "=="
+        },
+        {
+            "constant": "finished",
+            "name": "C3",
+            "operand": {
+                "task_name": "start",
+                "type": "local",
+                "variable": "state"
+            },
+            "operator": "=="
+        },
+        {
+            "constant": "running",
+            "name": "C4",
+            "operand": {
+                "task_name": "end",
+                "type": "local",
+                "variable": "state"
+            },
+            "operator": "=="
+        },
+        {
+            "constant": "running",
+            "name": "C5",
+            "operand": {
+                "type": "global",
+                "variable": "state"
+            },
+            "operator": "=="
+        }
+    ],
+    "constants": {},
+    "description": "",
+    "events": [
+        {
+            "affected_objects": {
+                "globals": [
+                    "state"
+                ],
+                "local": [
+                    [
+                        "start",
+                        "state"
+                    ]
+                ]
+            },
+            "description": "desc1",
+            "name": "START_WORKFLOW",
+            "rules": [
+                "R1",
+                "R2"
+            ],
+            "task": "start"
+        },
+        {
+            "affected_objects": {
+                "globals": [
+                    "state"
+                ],
+                "local": [
+                    [
+                        "start",
+                        "state"
+                    ]
+                ]
+            },
+            "description": "desc2",
+            "name": "WORKFLOW_STARTED",
+            "rules": [
+                "R3"
+            ],
+            "task": "start"
+        },
+        {
+            "affected_objects": {
+                "globals": [
+                    "state"
+                ],
+                "local": [
+                    [
+                        "end",
+                        "state"
+                    ]
+                ]
+            },
+            "description": "desc3",
+            "name": "END_WORKFLOW",
+            "rules": [
+                "R4"
+            ],
+            "task": "end"
+        },
+        {
+            "affected_objects": {
+                "globals": [],
+                "local": []
+            },
+            "description": "desc1",
+            "name": "WORKFLOW_ENDED",
+            "rules": [
+                "R5"
+            ],
+            "task": "end"
+        }
+    ],
+    "globals": {
+        "state": "not started"
+    },
+    "resources": [
+        "admin"
+    ],
+    "roles": [
+        "admin"
+    ],
+    "rules": [
+        {
+            "action": "START WORKFLOW",
+            "condition": "C1",
+            "event": "START_WORKFLOW",
+            "name": "R1"
+        },
+        {
+            "action": "START WORKFLOW",
+            "condition": "C2",
+            "event": "START_WORKFLOW",
+            "name": "R2"
+        },
+        {
+            "action": "FINISHED START RAISE END TASK",
+            "condition": "C3",
+            "event": "WORKFLOW_STARTED",
+            "name": "R3"
+        },
+        {
+            "action": "END WORKFLOW",
+            "condition": "C4",
+            "event": "END_WORKFLOW",
+            "name": "R4"
+        },
+        {
+            "action": "END WORKFLOW",
+            "condition": "C5",
+            "event": "WORKFLOW_ENDED",
+            "name": "R5"
+        }
+    ],
+    "tasks": [
+        {
+            "description": "starting task of a workflow",
+            "input_events": [
+                "START_WORKFLOW"
+            ],
+            "input_params": [],
+            "name": "start",
+            "output_events": [
+                "WORKFLOW_STARTED"
+            ],
+            "output_params": [
+                "state"
+            ]
+        },
+        {
+            "description": "ending task of a workflow",
+            "input_events": [
+                "END_WORKFLOW"
+            ],
+            "input_params": [],
+            "name": "end",
+            "output_events": [
+                "WORKFLOW_ENDED"
+            ],
+            "output_params": [
+                "state"
+            ]
+        }
+    ],
+    "title": "mews",
+    "type": "meta"
+}

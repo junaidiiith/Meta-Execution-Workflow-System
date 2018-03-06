@@ -113,11 +113,10 @@ class EventDispatcher(object):
 
         if condition.check(data):
             if action['handler']:
-                output = self.run_handler(action, data, *args, **kwargs)
+                output = self.run_handler(action['handler'], data, *args, **kwargs)
                 self.update(data, output, rule_data['workflow_id'])
             return action['raised_events']
         return None
-
     def dispatch_event(self, event, *args, **kwargs):
         """
         Dispatch an instance of Event class

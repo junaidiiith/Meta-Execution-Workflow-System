@@ -1,0 +1,574 @@
+{
+    "actions": [
+        {
+            "affected_objects": [],
+            "handler": "MetaHandlers.Tasks.create_workflow_instance",
+            "name": "start instance creation",
+            "raised_events": [
+                "INSTANCE_CREATED"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "handler": "None",
+            "name": "finish create workflow instance",
+            "raised_events": [
+                "GET_TASK"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "handler": "MetaHandlers.tasks.get_task",
+            "name": "start get a task",
+            "raised_events": [
+                "GOT_TASK"
+            ]
+        },
+        {
+            "affected_objects":[],
+            "handler": "common.tasks.change_state",
+            "name": "finish get a task",
+            "raised_events": [
+                "CHECK_TASK"
+            ]
+        },
+        {
+            "affected_objects": [
+                "TASK_VALUE"
+            ],
+            "handler": "MetaHandlers.tasks.check_task",
+            "name": "start check task",
+            "raised_events": [
+                "TASK_CHECKED"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "handler": "None",
+            "name": "finish check task",
+            "raised_events": [
+                "START_CHECKING_RESOURCES"
+            ]
+        },
+        {
+            "affected_objects": [
+                "META_WORKFLOW_ID"
+            ],
+            "handler": "MetaHandlers.tasks.end",
+            "name": "STOP WORKFLOW",
+            "raised_events": [
+                "WORKFLOW_ENDED"
+            ]
+        },
+        {
+            "affected_objects": [
+                "TASK_NAME"
+            ],
+            "handler": "MetaHandlers.tasks.check_resources",
+            "name": "start checking resources",
+            "raised_events": [
+                "RESOURCES_AVAILABLE",
+                "RESOURCES_UNAVAILABLE"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "handler": "common.tasks.change_state",
+            "name": "finish checking resources available",
+            "raised_events": [
+                "START_TASK_EXECUTION"
+            ]
+        },
+        {
+            "affected_objects": [
+                "RESOURCE_AVAILIBILITY"
+            ],
+            "handler": "MetaHandlers.tasks.check_resources",
+            "name": "CHECK RESOURCES AGAIN",
+            "raised_events": [
+                "START_CHECKING_RESOURCES"
+            ]
+        },
+        {
+            "affected_objects": [
+                "TASK_STATE"
+            ],
+            "handler": "MetaHandlers.tasks.execute",
+            "name": "RUN ACTION",
+            "raised_events": [
+                "TASK_EXECUTED"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "handler": "None",
+            "name": "GET NEXT TASK",
+            "raised_events": [
+                "GET_TASK"
+            ]
+        },
+        {
+            "affected_objects": [
+                "STATE"
+            ],
+            "handler": "MetaHandlers.tasks.end",
+            "name": "STOP WORKFLOW",
+            "raised_events": [
+                "END_WORKFLOW"
+            ]
+        },
+        {
+            "affected_objects": [
+                "STATE"
+            ],
+            "handler": "MetaHandlers.tasks.start",
+            "name": "START WORKFLOW EXECUTION",
+            "raised_events": [
+                "WORKFLOW_STARTED"
+            ]
+        },
+        {
+            "affected_objects": [
+                "STATE"
+            ],
+            "handler": "MetaHandlers.tasks.create_workflow_instance",
+            "name": "CREATE WORKFLOW INSTANCE",
+            "raised_events": [
+                "CREATE_INSTANCE"
+            ]
+        }
+    ],
+    "conditions": [
+        {
+            "constant": "not started",
+            "name": "C1",
+            "operand": "state",
+            "operator": "=="
+        },
+        {
+            "constant": "None",
+            "name": "C2",
+            "operand": "EXECUTION_DATA_ID",
+            "operator": "!="
+        },
+        {
+            "constant": "running",
+            "name": "C3",
+            "operand": "state",
+            "operator": "=="
+        },
+        {
+            "constant": "None",
+            "name": "C4",
+            "operand": "TASK_NAME",
+            "operator": "!="
+        },
+        {
+            "constant": "True",
+            "name": "C5",
+            "operand": "TASK_AVAILIBILITY",
+            "operator": "=="
+        },
+        {
+            "constant": "END",
+            "name": "C6",
+            "operand": "TASK_VALUE",
+            "operator": "!="
+        },
+        {
+            "constant": "END",
+            "name": "C7",
+            "operand": "TASK_VALUE",
+            "operator": "=="
+        },
+        {
+            "constant": "True",
+            "name": "C8",
+            "operand": "True",
+            "operator": "=="
+        },
+        {
+            "constant": "True",
+            "name": "C9",
+            "operand": "RESOURCE_AVAILIBILITY",
+            "operator": "=="
+        },
+        {
+            "constant": "FALSE",
+            "name": "C10",
+            "operand": "TASK_AVAILIBILITY",
+            "operator": "=="
+        },
+        {
+            "constant": "running",
+            "name": "C11",
+            "operand": "state",
+            "operator": "=="
+        },
+        {
+            "constant": "running",
+            "name": "C12",
+            "operand": "state",
+            "operator": "=="
+        },
+        {
+            "constant": "FINISHED",
+            "name": "C13",
+            "operand": "TASK_STATE",
+            "operator": "=="
+        },
+        {
+            "constant": "0",
+            "name": "C14",
+            "operand": "TASK_EXIT_STATUS",
+            "operator": "=="
+        },
+        {
+            "constant": "not started",
+            "name": "C15",
+            "operand": "state",
+            "operator": "=="
+        },
+        {
+            "constant": "started",
+            "name": "C16",
+            "operand": "state",
+            "operator": "=="
+        }
+    ],
+    "constants": {},
+    "description": "A meta execution workflow to execute other workflows",
+    "events": [
+        {
+            "affected_objects": [
+                "USER_WORKFLOW_ID"
+            ],
+            "name": "CREATE_INSTANCE",
+            "rules": [
+                "R1"
+            ]
+        },
+        {
+            "affected_objects": [
+                "EXECUTION_DATA_ID"
+            ],
+            "name": "INSTANCE_CREATED",
+            "rules": [
+                "R2"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "GET_TASK",
+            "rules": [
+                "R3"
+            ]
+        },
+        {
+            "affected_objects": [
+                "TASK_NAME"
+            ],
+            "name": "GOT_TASK",
+            "rules": [
+                "R4"
+            ]
+        },
+        {
+            "affected_objects": [
+                "TASK_AVAILIBILITY"
+            ],
+            "name": "CHECK_TASK",
+            "rules": [
+                "R5"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "TASK_CHECKED",
+            "rules": [
+                "R6",
+                "R17"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "END_WORKFLOW",
+            "rules": [
+                "R7"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "START_CHECKING_RESOURCES",
+            "rules": [
+                "R8"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "RESOURCES_AVAILABLE",
+            "rules": [
+                "R9"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "RESOURCES_UNAVAILABLE",
+            "rules": [
+                "R11"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "START_TASK_EXECUTION",
+            "rules": [
+                "R12"
+            ]
+        },
+        {
+            "affected_objects": [
+                "TASK_EXIT_STATUS"
+            ],
+            "name": "TASK_EXECUTED",
+            "rules": [
+                "R13"
+            ]
+        },
+        {
+            "affected_objects": [
+                "TASK_EXIT_STATUS"
+            ],
+            "name": "ERRORS_OCCURED_WHILE_EXECUTING",
+            "rules": [
+                "R14"
+            ]
+        },
+        {
+            "affected_objects": [
+                "STATE"
+            ],
+            "name": "START_WORKFLOW",
+            "rules": [
+                "R15"
+            ]
+        },
+        {
+            "affected_objects": [],
+            "name": "WORKFLOW_STARTED",
+            "rules": [
+                "R16"
+            ]
+        },
+        {
+            "affected_objects": [
+                "STATE"
+            ],
+            "name": "WORKFLOW_ENDED",
+            "rules": []
+        }
+    ],
+    "globals": {
+        "state": "not started"
+    },
+    "resources": [
+        "MetaHandlers.tasks"
+    ],
+    "roles": [
+        "admin"
+    ],
+    "rules": [
+        {
+            "action": "CREATE_WF_INSTANCE",
+            "condition": "C1",
+            "name": "R1"
+        },
+        {
+            "action": "NONE",
+            "condition": "C2",
+            "name": "R2"
+        },
+        {
+            "action": "GET TASK FROM UW",
+            "condition": "C3",
+            "name": "R3"
+        },
+        {
+            "action": "RAISE ACTIONS",
+            "condition": "C4",
+            "name": "R4"
+        },
+        {
+            "action": "METAHANDLERS.TASKS.CHECK_TASK",
+            "condition": "C5",
+            "name": "R5"
+        },
+        {
+            "action": "CHECK TASK RESOURCES",
+            "condition": "C6",
+            "name": "R6"
+        },
+        {
+            "action": "STOP WORKFLOW",
+            "condition": "C7",
+            "name": "R17"
+        },
+        {
+            "action": "",
+            "condition": "C8",
+            "name": "R8"
+        },
+        {
+            "action": "RAISE START TASK EXECUTION EVENT",
+            "condition": "C9",
+            "name": "R9"
+        },
+        {
+            "action": "CHECK RESOURCES AGAIN",
+            "condition": "C11",
+            "name": "R11"
+        },
+        {
+            "action": "RUN ACTION",
+            "condition": "C12",
+            "name": "R12"
+        },
+        {
+            "action": "GET NEXT TASK",
+            "condition": "C13",
+            "name": "R13"
+        },
+        {
+            "action": "STOP WORKFLOW",
+            "condition": "C14",
+            "name": "R14"
+        },
+        {
+            "action": "START WORKFLOW EXECUTION",
+            "condition": "C15",
+            "name": "R15"
+        },
+        {
+            "action": "CREATE WORKFLOW INSTANCE",
+            "condition": "C16",
+            "name": "R16"
+        },
+        {
+            "action": "STOP WORKFLOW",
+            "condition": "C7",
+            "name": "R17"
+        }
+    ],
+    "tasks": [
+        {
+            "description": "creating an instance for the workflow execution",
+            "input_events": [
+                "CREATE_INSTANCE"
+            ],
+            "input_params": [
+                "USER_WORKFLOW_ID"
+            ],
+            "name": "create workflow instance",
+            "output_events": [
+                "INSTANCE_CREATED"
+            ],
+            "output_params": [
+                "EXECUTION_DATA_ID"
+            ]
+        },
+        {
+            "description": "Getting next task for the execution",
+            "input_events": [
+                "GET_TASK"
+            ],
+            "input_params": [
+                ""
+            ],
+            "name": "get task",
+            "output_events": [
+                "GOT_TASK"
+            ],
+            "output_params": [
+                "TASK_NAME"
+            ]
+        },
+        {
+            "description": "Checking task if available or not",
+            "input_events": [
+                "CHECK_TASK"
+            ],
+            "input_params": [
+                ""
+            ],
+            "name": "check task",
+            "output_events": [
+                "TASK_NOT_END",
+                "END_WORKFLOW"
+            ],
+            "output_params": [
+                "TASK_AVAILIBILITY"
+            ]
+        },
+        {
+            "description": "checking resources availibility of task execution",
+            "input_events": [
+                "START_CHECKING_RESOURCES"
+            ],
+            "input_params": [
+                ""
+            ],
+            "name": "check resources",
+            "output_events": [
+                "RESOURCES_AVAILABLE",
+                "RESOURCES_UNAVAILABLE"
+            ],
+            "output_params": [
+                "RESOURCE_AVAILIBILITY"
+            ]
+        },
+        {
+            "description": "Executing the task at hand",
+            "input_events": [
+                "START_TASK_EXECUTION"
+            ],
+            "input_params": [],
+            "name": "execute task",
+            "output_events": [
+                "TASK_EXECUTED",
+                "ERRORS_OCCURED_WHILE_EXECUTING"
+            ],
+            "output_params": [
+                "TASK_EXIT_STATUS"
+            ]
+        },
+        {
+            "description": "starting task of a workflow",
+            "input_events": [
+                "START_WORKFLOW"
+            ],
+            "input_params": [],
+            "name": "start",
+            "output_events": [
+                "WORKFLOW_STARTED"
+            ],
+            "output_params": [
+                "state"
+            ]
+        },
+        {
+            "description": "ending task of a workflow",
+            "input_events": [
+                "END_WORKFLOW"
+            ],
+            "input_params": [],
+            "name": "end",
+            "output_events": [
+                "WORKFLOW_ENDED"
+            ],
+            "output_params": [
+                "state"
+            ]
+        }
+    ],
+    "title": "Meta execution workflow",
+    "type": "meta"
+}
