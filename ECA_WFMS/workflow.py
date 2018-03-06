@@ -22,16 +22,16 @@ class Workflow:
 
         self._events = None
         self._rules = None
+        self.start = None
         self.define_roles(json_file)
         self.define_resources(json_file)
         self.define_constants(json_file)
         self.define_globals(json_file)
         self.define_tasks(json_file)
         self.define_events(json_file)
-        self.start = None
         self.define_eca_rules(json_file)
         self.content = self.store()
-        # self.to_json()
+        self.to_json()
         print("-----------------Workflow object creation successful-------------")
 
     def get(self, table):
@@ -104,24 +104,12 @@ class Workflow:
         print("Defining tasks")
         if json_file:
             tasks = json_file['tasks']
-            tdata = dict()
             for task in tasks:
+                t_data = dict()
                 for key, value in task.items():
-                    tdata[key] = value
-
-                event_list = list()
-                for event in tdata['input_events']:
-                    db_event = self.dbs.add_to_database("Events", {'event': event, 'workflow_id': self.id})
-                    event_list.append(db_event)
-                tdata['input_events'] = event_list
-                event_list = list()
-
-                for event in tdata['output_events']:
-                    db_event = self.dbs.add_to_database("Events", {'event': event, 'workflow_id': self.id})
-                    event_list.append(db_event)
-                tdata['output_events'] = event_list
-                tdata['workflow_id'] = self.id
-                self.dbs.add_to_database("Tasks", tdata)
+                    t_data[key] = value
+                t_data['workflow_id'] = self.id
+                self.dbs.add_to_database("Tasks", t_data)
         else:
             print("Defining tasks for the workflow")
 
@@ -168,20 +156,23 @@ class Workflow:
 
     def define_events(self, json_file=None):
         event_set = set()
-        events = list()
+        event_list = list()
         if json_file:
-            events = json_file["Events"]
+            events = json_file["events"]
             for event in events:
                 task = self.dbs.find_one_record("Tasks", {"name": event['task']})
-                affected_objects = task['input_params']+task['output_params']
-                if event not in event_set:
-                    event_set.add(event)
-                    events.append({'task_id': task['_id'], 'task_name': task['name'],
-                                   "name": event['name'], 'description': event['description'],
-                                   'affected_objects': affected_objects})
+                if event['name'] not in event_set:
+                    event_set.add(event['name'])
+                    record = {'task_id': task['_id'], 'task_name': task['name'],
+                              "name": event['name'], 'description': event['description'],
+                              'affected_objects': event['affected_objects'], "workflow_id": self.id}
+                    event_list.append(self.dbs.add_to_database("Events", record))
                     if event['name'] == 'START_WORKFLOW':
-                        self.start = events[-1]
+                        print("Start event found")
+                        self.start = event_list[-1]
+            self._events = event_list
         else:
+            events = list()
             tasks = self.dbs.find_many_records("Tasks", {'workflow_id': self.id})
             for task in tasks:
                 if task['name'].lower() == "end":
@@ -192,40 +183,61 @@ class Workflow:
                     if event not in event_set:
                         event_set.add(event)
                         description = input("Enter the description of the event: "+str(event)+'\n')
-                        affected_objects = self.choose_affected_objects(task['input_params']+task['output_params'])
+                        affected_objects = self.define_affected_objects()
                         record = {'task_id': task['_id'], 'task_name': task['name'], 'workflow_id': self.id,
                                   "affected_objects": affected_objects,
                                   "name": event, 'description': description}
                         events.append(self.dbs.add_to_database("Events", record))
-        self._events = events
+                        if event == "START_WORKFLOW":
+                            self.start = event[-1]
+            self._events = events
+            print("--Events defined--")
 
     def define_eca_rules(self, json_file=None):
         if json_file:
-            rules = json_file['Rules']
+            rules = json_file['rules']
             assert self._events is not None
-            rule_ids = list()
-            event_id = self.dbs.find_one_record("Events", {'name': rules[0]['event'], 'workflow_id': self.id})['_id']
+            rule_dict = dict()
             for rule in rules:
-                condition = rule['condition']
+                event = self.dbs.find_one_record("Events", {"workflow_id": self.id, "name": rule['event']})
+                conditions = json_file['conditions']
+                for cond in conditions:
+                    if cond['name'] == rule['condition']:
+                        condition = cond
+                        break
                 condition['workflow_id'] = self.id
                 condition_id = self.dbs.add_to_database("Conditions", condition)
-                action = rule['action']
+                actions = json_file['actions']
+                for act in actions:
+                    if act['name'] == rule['action']:
+                        action = act
+                        break
                 raised_events = action['raised_events']
                 re_ids = list()
+
                 for re in raised_events:
-                    re_ids.append(str(self.dbs.find_one_record("Events",
-                                                               {"workflow_id": self.id, "name": re})['_id']))
+                    re_ids.append(self.dbs.find_one_record("Events",
+                                                               {"workflow_id": self.id, "name": re})['_id'])
 
                 action_id = self.dbs.add_to_database("Actions", {"workflow_id": self.id, "name": action['name'],
                                                                  'handler': action['handler'],
                                                                  'affected_objects': action['affected_objects'],
                                                                  'raised_events': re_ids})
 
-                rule_ids.append(self.dbs.add_to_database("Rules", {"workflow_id": self.id,"name": rule['name'],
-                                                                   "event": event_id,
-                                                                   "condition": condition_id, "action": action_id}))
+                record = {"workflow_id": self.id,
+                          "name": rule['name'],
+                          "event": event['_id'],
+                          "condition": condition_id, "action": action_id}
+                try:
+                    rule_dict[event['name']].append(self.dbs.add_to_database("Rules", record))
+                except:
+                    rule_dict[event['name']] = [self.dbs.add_to_database("Rules", record)]
 
-            self.dbs.update_record("Events", {"_id": event_id}, {"rules": rule_ids})
+            for e, rls in rule_dict.items():
+                old_event = self.dbs.find_one_record("Events", {"workflow_id": self.id, "name": e})
+                new_event = old_event.copy()
+                new_event['rules'] = rls
+                self.dbs.update_record("Events", old_event, new_event)
         else:
             print("Defining ECA rules")
             count = 0
@@ -245,16 +257,23 @@ class Workflow:
                     else:
                         break
                 self.dbs.update_record("Events", {"_id": event_id}, {"rules": rule_ids})
+        print("ECA rules defined")
 
     def define_condition(self, event, name):
 
         global_vars = self.dbs.find_one_record("Globals", {"workflow_id": self.id})['globals']
         for glob in global_vars:
             print(glob)
-        for param in event['affected_objects']:
-            print(param)
+        for key, value in event['affected_objects'].items():
+            print(key, ":", value)
 
-        operand = input("choose as operand, global constants or input params\n")
+        op_type = input("choose as operand, global constants or task params[task[space]param name]\n")
+        op_type = op_type.strip().split()
+        if len(op_type) == 2:
+            operand = {"type": "local", "task_name": op_type[0], "variable": op_type[1]}
+        else:
+            operand = {"type": "global", "variable": op_type[0]}
+
         operator = input("Enter the operator\n")
         constant = input("Enter the constant\n")
         condition = {'workflow_id': self.id, 'name': name, 'operand': operand,
@@ -265,7 +284,7 @@ class Workflow:
     def define_action(self):
         name = input("Enter the name of the action\n").upper()
         handler = input("Enter the module, class, function with a .\n")
-        affected_objects = self.choose_affected_objects()
+        affected_objects = self.define_affected_objects()
         ids = list()
         while True:
             add = input("press [Enter] to stop adding raised events\n")
@@ -279,27 +298,42 @@ class Workflow:
                 ids.append(event_id)
             else:
                 break
-        return self.dbs.add_to_database("Actions", {"workflow_id": self.id, "name": name,
-                                                    "handler": handler, "raised_events": ids,
-                                                    "affected_objects": affected_objects})
 
-    def choose_affected_objects(self, l=None):
-        ao = list()
-        if l:
-            while True:
-                add = input("Enter affected objects from this list\n"+str(l)+'\n')
-                if add:
-                    ao.append(input().upper())
-                else:
-                    break
-            return ao
+        record = {"workflow_id": self.id, "name": name,
+                  "handler": handler, "raised_events": ids,
+                  "affected_objects": affected_objects}
+        return self.dbs.add_to_database("Actions", record)
+
+    def define_affected_objects(self):
+        affected_objects = dict()
+        tasks = list()
+        ts = self.dbs.find_many_records("Tasks", {'workflow_id': self.id})
+        for t in ts:
+            tasks.append(t['name'])
+
+        print("Defining local objects for the event from the tasks")
+        local = list()
         while True:
-            add = input("Enter affected objects\n")
-            if add:
-                ao.append(input().upper())
+            for t in tasks:
+                print(t)
+            t_name = input("Enter the task name or enter to adding affected objects")
+            if t_name:
+                ao = input("Enter affected object")
+                local.append((t_name, ao))
             else:
                 break
-        return ao
+
+        affected_objects['local'] = local
+        print("Defining global affected objects")
+        g = list()
+        while True:
+            ao = input("Enter an affected object or [Enter] to stop")
+            if len(ao):
+                g.append(ao)
+            else:
+                break
+        affected_objects['globals'] = g
+        return affected_objects
 
     def _get_tasks(self, tasks):
         t = list()
@@ -317,6 +351,8 @@ class Workflow:
             event_data = dict()
             event_data['name'] = event['name']
             event_data['affected_objects'] = event['affected_objects']
+            event_data['task'] = event['task_name']
+            event_data['description'] = event['description']
             rules = event['rules']
             rls = list()
             for rule in rules:
@@ -330,6 +366,7 @@ class Workflow:
         for rule in rules:
             rdata = dict()
             rdata['name'] = rule['name']
+            rdata['event'] = self.dbs.find_one_record("Events", {'_id': rule['event']})['name']
             rdata['action'] = self.dbs.find_one_record("Actions", {'_id': rule['action']})['name']
             rdata['condition'] = self.dbs.find_one_record("Conditions", {'_id': rule['condition']})['name']
             rule_list.append(rdata)

@@ -1,4 +1,4 @@
-from mongo_database import Database
+from .mongo_database import Database
 from .condition import Condition
 db = Database()
 
@@ -44,18 +44,79 @@ class EventDispatcher(object):
         d = callback(*args, **kwargs) or None
         return d
 
+    def get_data(self, event, action):
+        event_affected = event['affected_objects']
+        action_affected = action['affected_objects']
+
+        data = db.find_many_records("Exec_data", {"workflow_id": event['workflow_id']})['data']
+        data_retrieved = dict()
+        global_data = data['global']
+        global_objects = event_affected['global']+action_affected['global']
+        for obj in global_objects:
+            data_retrieved[obj] = global_data[obj]
+
+        local_data = data['local']
+        local_objects = event_affected['local']+action_affected['local']
+
+        for obj in local_objects:
+            for local in local_data[obj[0]]:
+                if local['name'] == obj[1]:
+                    data_retrieved[(obj[0], obj[1])] = local['value']
+
+        return data_retrieved
+
+    def merge(self, d1, d2):
+        d = dict()
+        d['global'] = {**d1['global'], **d2['global']}
+        old_local_data = d1['local']
+        new_local_data = d2['local']
+
+        new_data = list()
+        for key, val in new_local_data.items():
+            if key in old_local_data.items():
+                new_data.append({key: val})
+
+        for key, val in old_local_data.items():
+            if key not in new_local_data.items():
+                new_data.append({key: val})
+
+        d['local'] = new_data
+        return d
+
+    def update(self, d1, d2, id):
+        d = self.merge(d1, d2)
+
+        global_vars = set(db.find_one_record("Globals", {'workflow_id': id})['globals'])
+        global_set = set(d.keys()).intersection(global_vars)
+        local_set = set(d.keys()).difference(global_set)
+
+        old_data = db.find_one_record("Exec_data", {"workflow_id": id})['data']
+        data = old_data
+        for i in global_set:
+            data['global'][i] = d[i]
+
+        data['global'] = {**d['global'], **old_data['global']}
+
+        local_data = db.find_one_record("Exec_data", {"workflow_id": id})['data']['local']
+        for key in local_set:
+            local_data[key] = d[key]
+
+        data['local'] = local_data
+        db.update_record("Exec_data", old_data, data)
+
     def process_rule(self, rule, event, *args, **kwargs):
         rule_data = db.find_one_record("Rules", {'_id': rule})
         condition = Condition(db.find_one_record("Conditions", {'_id': rule_data['condition']}))
         action = db.find_one_record("Actions", {'_id': rule_data['action']})
-        data = db.find_one_record("Exec_data", {"workflow_id": rule['workflow_id']})
-        affected_objects = event['affected_objects']
+        data = self.get_data(event, action)
+        # affected_objects = event['affected_objects']
 
         if condition.check(data):
-            output = self.run_handler(action, data, *args, **kwargs)
-            data = {**data, **output}
-            db.update_record('Exec_data', {"workflow_id": rule['workflow_id']}, data)
+            if action['handler']:
+                output = self.run_handler(action, data, *args, **kwargs)
+                self.update(data, output, rule_data['workflow_id'])
             return action['raised_events']
+        return None
 
     def dispatch_event(self, event, *args, **kwargs):
         """
@@ -69,7 +130,8 @@ class EventDispatcher(object):
 
             for rule in rules:
                 r_events = self.process_rule(rule, event_data, *args, **kwargs)
-                raised_events.append(r_events)
+                if r_events:
+                    raised_events.append(r_events)
         return raised_events
 
     def add_event_listener(self, event_type, listener):
