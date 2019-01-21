@@ -1,0 +1,151 @@
+{
+    "constants": {},
+    "description": "Meta Specification Workflow",
+    "resources": [
+        "MetaSpecificationWorkflow.tasks"
+    ],
+    "roles": [
+        "admin",
+        "user",
+        "system"
+    ],
+    "tasks": [
+        {
+            "description": "Starting task of the workflow",
+            "handler": {
+                "module": "MetaSpecificationWorkflow.tasks",
+                "class": "Tasks",
+                "function": "start"
+            },
+            
+            "name": "start",
+            "input_params": [],
+            "output_params": [],
+            "form": {},
+            "role": "system",
+            "type": "user",
+            "rules": {}
+        },
+        {
+            "description": "Basic Workflow Definition",
+            "handler": {
+                "module": "MetaSpecificationWorkflow.tasks",
+                "class": "Tasks",
+                "function": "cwi"
+            },
+            
+            "name": "BasicWorkflowDefinition",
+            "input_params": ["description"],
+            "output_params": [],
+            "form": [{"name": "description", "datatype": "text", "label": "Basic Definition of the Workflow"}],
+            "role": "system",
+            "type": "user",
+            "rules": {"gate": "AND", "rules": ["R1"]}
+        },
+        {
+            "description": "Define roles for the workflow",
+            "handler": {
+                "module": "MetaSpecificationWorkflow.tasks",
+                "class": "Tasks",
+                "function": "define_roles"
+            },
+            
+            "name": "DefineRoles",
+            "input_params": [],
+            "output_params": ["roles"],
+            "form": [{"name": "roles_json", "datatype": "file", "label": "Upload roles json file"}],
+            "role": "system",
+            "type": "user",
+            "rules": {"gate": "AND", "rules": ["R2"]}
+        },
+        {
+            "description": "Define resources for the workflow",
+            "handler": {
+                "module": "MetaSpecificationWorkflow.tasks",
+                "class": "Tasks",
+                "function": "define_resources"
+            },
+            
+            "name": "DefineResources",
+            "input_params": [],
+            "output_params": ["resources"],
+            "form": [{"name": "resources_json", "datatype": "file", "label": "Upload resources json file"}],
+            "role": "system",
+            "type": "user",
+            "rules": {"gate": "AND", "rules": ["R2"]}
+        },
+        {
+            "description": "Define tasks for the workflow",
+            "handler": {
+                "module": "MetaSpecificationWorkflow.tasks",
+                "class": "Tasks",
+                "function": "define_tasks"
+            },
+            
+            "name": "DefineTasks",
+            "input_params": [],
+            "output_params": ["tasks"],
+            "form": [{"name": "tasks_json", "datatype": "file", "label": "Upload tasks json file"}],
+            "role": "system",
+            "type": "user",
+            "rules": {"gate": "AND", "rules": ["R2"]}
+        },
+        {
+            "description": "Define Rules-Events-Conditions",
+            "handler": {
+                "module": "MetaSpecificationWorkflow.tasks",
+                "class": "Tasks",
+                "function": "define_rules"
+            },
+            
+            "name": "DefineECRules",
+            "input_params": ["tasks"],
+            "output_params": ["rules"],
+            "form": [{"name": "rules_json", "datatype": "file", "label": "Upload rules json file"}],
+            "role": "admin",
+            "type": "user",
+            "rules": {"gate": "AND", "rules": ["R3,R4,R5"]}
+        },
+        {
+            "description": "End",
+            "handler": {
+                "module": "MetaSpecificationWorkflow.tasks",
+                "class": "Tasks",
+                "function": "end"
+            },
+            
+            "name": "end",
+            "input_params": [],
+            "output_params": [],
+            "form": [],
+            "role": "admin",
+            "type": "user",
+            "rules": {"gate": "AND", "rules": ["R6"]}
+        }
+    ],
+    "name": "MetaSpecificationWorkflow",
+    "workflow_type": "user",
+    "rules": [
+        {"name":"R1", "event": "E1", "condition": ""},
+        {"name":"R2", "event": "E2", "condition": ""},
+        {"name":"R3", "event": "E3", "condition": "C1"},
+        {"name":"R4", "event": "E4", "condition": "C2"},
+        {"name":"R5", "event": "E5", "condition": "C3"},
+        {"name":"R6", "event": "E6", "condition": "C4"},
+    ],
+    "events": [
+        {"name":"E1", "task": "start", "state": "finished"},
+        {"name":"E2", "task": "BasicWorkflowDefinition", "state": "finished"},
+        {"name":"E3", "task": "DefineRoles", "state": "finished"},
+        {"name":"E4", "task": "DefineResources", "state": "finished"},
+        {"name":"E5", "task": "DefineTasks", "state": "finished"},
+        {"name":"E6", "task": "DefineECRules", "state": "finished"},
+        {"name":"E7", "task": "end", "state": "finished"},
+    ],
+    "conditions": [
+        {"name":"C1", "operator": "!=", "operand": "roles", "constant": "None"},
+        {"name":"C2", "operator": "!=", "operand": "resources", "constant": "None"},
+        {"name":"C3", "operator": "!=", "operand": "tasks", "constant": "None"},
+        {"name":"C4", "operator": "!=", "operand": "rules", "constant": "None"},
+    ]
+}

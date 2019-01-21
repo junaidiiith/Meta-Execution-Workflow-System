@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block navbar %}
+	<header id="header" class="alt">
+				<h1><strong><a href="index.html">Meta Execution</a></strong> Workflow System (MEWS)</h1>
+				<nav id="nav">
+					<ul>
+						{% if not user.is_authenticated %}
+		                    <li class="active"><a href="{% url 'users:register' %}">Sign Up</a></li>
+			            {% endif %}
+					</ul>
+				</nav>
+			</header>
+
+			<a href="#menu" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+{% endblock navbar %}
+{% block section_two %}
+    <div class="container">
+        <h2>Login </h2>
+        <div class="row" style="margin-top:10px">
+            <form method="post">
+              {% csrf_token %}
+              {{ form.as_p }}
+              <button type="submit">Login</button>
+        </div>
+    </div>
+{% endblock %}

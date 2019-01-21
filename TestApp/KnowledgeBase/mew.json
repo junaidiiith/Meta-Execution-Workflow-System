@@ -1,0 +1,150 @@
+{
+    "constants": {},
+    "description": "Meta Execution Workflow",
+    "resources": [
+        "MetaExecutionWorkflow.tasks"
+    ],
+    "roles": [
+        "admin",
+        "user",
+        "system"
+    ],
+    "tasks": [
+        {
+            "description": "Starting task of the workflow",
+            "handler": {
+                "module": "MetaExecutionWorkflow.tasks",
+                "class": "Tasks",
+                "function": "start"
+            },
+            
+            "name": "start",
+            "input_params": [],
+            "output_params": [],
+            "form": {},
+            "role": "system",
+            "task_type": "meta",
+            "rules": {}
+        },
+        {
+            "description": "Create workflow Instance",
+            "handler": {
+                "module": "MetaExecutionWorkflow.tasks",
+                "class": "Tasks",
+                "function": "cwi"
+            },
+            
+            "name": "CWI",
+            "input_params": [],
+            "output_params": ["user_workflow_id"],
+            "form": [],
+            "role": "system",
+            "task_type": "meta",
+            "rules": {"gate": "AND", "rules": ["R1"]}
+        },
+        {
+            "description": "Update state to running",
+            "handler": {
+                "module": "MetaExecutionWorkflow.tasks",
+                "class": "Tasks",
+                "function": "update_state_running"
+            },
+            
+            "name": "UpdateState",
+            "input_params": ["user_workflow_id"],
+            "output_params": [],
+            "form": [],
+            "role": "admin",
+            "task_type": "meta",
+            "rules": {"gate": "AND", "rules": ["R2"]}
+        },
+        {
+            "description": "get next task of the user workflow",
+            "handler": {
+                "module": "MetaExecutionWorkflow.tasks",
+                "class": "Tasks",
+                "function": "get_next_task"
+            },
+            
+            "name": "GetATask",
+            "input_params": ["user_workflow_id"],
+            "output_params": ["user_workflow_task","task_availibility"],
+            "form": [],
+            "role": "admin",
+            "task_type": "meta",
+            "rules": {"gate": "XOR", "rules": ["R3","R7"]}
+        },
+        {
+            "description": "Check resources before Execution",
+            "handler": {
+                "module": "MetaExecutionWorkflow.tasks",
+                "class": "Tasks",
+                "function": "check_resources"
+            },
+            
+            "name": "CheckResources",
+            "input_params": ["user_workflow_task"],
+            "output_params": ["resource_availability"],
+            "form": [],
+            "role": "admin",
+            "task_type": "meta",
+            "rules": {"gate": "AND", "rules": ["R4"]}
+        },
+        {
+            "description": "Execute user task",
+            "handler": {
+                "module": "MetaExecutionWorkflow.tasks",
+                "class": "Tasks",
+                "function": "execute"
+            },
+            
+            "name": "ExecuteTask",
+            "input_params": ["user_workflow_task"],
+            "output_params": ["execution_status"],
+            "form": [],
+            "role": "admin",
+            "task_type": "meta",
+            "rules": {"gate": "AND", "rules": ["R6"]}
+        },
+        {
+            "description": "End",
+            "handler": {
+                "module": "MetaExecutionWorkflow.tasks",
+                "class": "Tasks",
+                "function": "end"
+            },
+            
+            "name": "End",
+            "input_params": [],
+            "output_params": [],
+            "form": [],
+            "role": "admin",
+            "task_type": "meta",
+            "rules": {"gate": "AND", "rules": ["R5"]}
+        }
+    ],
+    "name": "MetaExecutionWorkflow",
+    "workflow_type": "meta",
+    "rules": [
+        {"name":"R1", "event": "E1", "condition": ""},
+        {"name":"R2", "event": "E2", "condition": ""},
+        {"name":"R3", "event": "E3", "condition": ""},
+        {"name":"R4", "event": "E4", "condition": "C1"},
+        {"name":"R5", "event": "E4", "condition": "C2"},
+        {"name":"R6", "event": "E5", "condition": ""},
+        {"name":"R7", "event": "E6", "condition": ""},
+    ],
+    "events": [
+        {"name":"E1", "task": "start", "state": "finished"},
+        {"name":"E2", "task": "CWI", "state": "finished"},
+        {"name":"E3", "task": "UpdateState", "state": "finished"},
+        {"name":"E4", "task": "GetATask", "state": "finished"},
+        {"name":"E5", "task": "CheckResources", "state": "finished"},
+        {"name":"E6", "task": "ExecuteTask", "state": "finished"},
+        {"name":"E7", "task": "End", "state": "finished"},
+    ],
+    "conditions": [
+        {"name":"C1", "operator": "==", "operand": "task_availibility", "constant": "True"},
+        {"name":"C2", "operator": "==", "operand": "task_availibility", "constant": "False"},
+    ]
+}

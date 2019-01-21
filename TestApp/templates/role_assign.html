@@ -1,0 +1,54 @@
+<!-- Two -->
+{% extends "base.html" %}
+{% block navbar %}
+	<header id="header" class="alt">
+				<h1><strong><a href="index.html">Meta Execution</a></strong> Workflow System (MEWS)</h1>
+				<nav id="nav">
+					<ul>
+						{% if not user.is_authenticated %}
+		                    <li class="active"><a href="{% url 'users:register' %}">Sign Up</a></li>
+   		                    <li class="active"><a href="{% url 'login' %}">Sign In</a></li>
+			            {% endif %}
+					</ul>
+				</nav>
+			</header>
+			<a href="#menu" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+{% endblock navbar %}
+{% block section_two %}
+	<section id="two" class="wrapper style2 special">
+		<div class="container">
+			{% if not user.is_superuser %}
+				<header class="major">
+					<h2>You are not authorized to see this page</h2>
+				</header>	
+			{% else %}
+				<header class="major">
+					<h2>Assign role to a user</h2>
+				</header>
+				<form method="post" enctype="multipart/form-data" id="role_assign_form" workflow-roles-url="{% url 'executor:ajax_load_roles' %}" novalidate>
+			    {% csrf_token %}
+	              {{ form.as_table }}
+	              <button type="submit">Submit</button>
+			  </form>
+			  <script>
+			    $("#id_workflow").change(function () {
+			      var url = $("#role_assign_form").attr("workflow-roles-url");  // get the url of the `load_cities` view
+			      var workflowId = $(this).val();  // get the selected country ID from the HTML input
+
+			      $.ajax({                       // initialize an AJAX request
+			        url: url,                    // set the url of the request (= localhost:8000/hr/ajax/load-cities/)
+			        data: {
+			          'workflow': workflowId       // add the country id to the GET parameters
+			        },
+			        success: function (data) {   // `data` is the return of the `load_cities` view function
+			          $("#id_role").html(data);  // replace the contents of the city input with the data that came from the server
+			        }
+			      });
+
+			    });
+			  </script>
+			{% endif %}
+		</div>
+	</section>
+{% endblock section_two %}
+
