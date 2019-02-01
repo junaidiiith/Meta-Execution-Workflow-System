@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block navbar %}
+	<header id="header" class="alt">
+				<h1><strong><a href="index.html">Meta Execution</a></strong> Workflow System (MEWS)</h1>
+				<nav id="nav">
+					<ul>
+						{% if not user.is_authenticated %}
+		                    <li class="active"><a href="{% url 'users:register' %}">Sign Up</a></li>
+		                    <li class="active"><a href="{% url 'login' %}">Sign In</a></li>
+			            {% else %}
+							<li><a href="{% url 'executor:execute_workflow' %}">Execute</a></li>
+							<li><a href="{% url 'executor:specify_workflow' %}">Specify</a></li>
+							{% if user.is_superuser %}
+								<li><a href="{% url 'executor:role_assign_add' %}">Assign Roles</a></li>
+							{% endif%}
+							<li><a href="{% url 'executor:worklist'%}">Worklist</a></li>
+		                    <li class="active"><a href="{% url 'logout' %}">Sign Out</a></li>
+			            {% endif %}
+					</ul>
+				</nav>
+			</header>
+
+			<a href="#menu" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+{% endblock navbar %}
+{% block section_two %}
+	<section id="two" class="wrapper style2 special">
+		<div class="container">
+				<header class="major">
+					<h2>Your pending tasks</h2>
+				</header>	
+				<div class="6u$ 12u$(medium)">
+				<table border="1">
+		      <thead>
+		        <tr>
+		          <th>Name</th>
+		          <th> Description </th> 
+		          <th>State</th>
+		          <th>Action</th>
+		        </tr>
+		      </thead>
+		      <tbody>
+		        {% for tsk in tasks %}
+		          <tr>
+		            <td> {{ tsk.task.name }}</td>
+		            <td> {{ tsk.task.description }}</td>
+		            <td> {{ tsk.state }} </td>
+		             <td><button type="button" class="btn btn-default"><a href="{% url 'executor:next_task' tsk.id %}" style="color: white">Initiate</a></button>
+		          </tr>
+		        {% endfor %}
+		      </tbody>
+		  </table>
+		</div>
+	</section>
+{% endblock section_two %}

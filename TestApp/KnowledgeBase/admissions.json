@@ -7,7 +7,7 @@
     "roles": [
         "admin",
         "user",
-        "system"
+        "system",
         "acad_admin"
     ],
     "tasks": [
@@ -23,8 +23,8 @@
             "output_params": [],
             "form": {},
             "role": "system",
-            "task_type": "user",
-            "rules": {}
+            "task_type": 2,
+            "rule_expression": {}
         },
         {
             "description": "Add application",
@@ -36,14 +36,14 @@
             "name": "AddApplication",
             "input_params": [],
             "output_params": [],
-            "form": [{"name": "name", "datatype": "char", "label": "Name of student: ", "max_length=100"},
-                    {"name": "age", "datatype": "int", "label": "Age of student: "}
-                    {"name": "CGPA", "datatype": "float", "label": "CGPA of student: "}
+            "form": [{"name": "name", "datatype": "char", "label": "Name of student: ", "max_length":100},
+                    {"name": "age", "datatype": "int", "label": "Age of student: "},
+                    {"name": "CGPA", "datatype": "float", "label": "CGPA of student: "},
                     {"name": "email", "datatype": "email", "label": "Email ID of student: "}
                 ],
             "role": "user",
-            "task_type": "user",
-            "rules": {"gate": "AND", "rules": ["R1"]}
+            "task_type": 2,
+            "rule_expression": {"gate": "AND", "rules": ["R1"]}
         },
         {
             "description": "Check approval",
@@ -57,8 +57,8 @@
             "output_params": ["roles"],
             "form": [{"name": "acceptance", "datatype": "choice", "choices": [["True","Accept Application"],["False","Reject Application"]], "label": "Application approval"}],
             "role": "acad_admin",
-            "task_type": "user",
-            "rules": {"gate": "AND", "rules": ["R2"]}
+            "task_type": 2,
+            "rule_expression": {"gate": "AND", "rules": ["R2"]}
         },
         {
             "description": "Call for interview",
@@ -72,8 +72,8 @@
             "output_params": [],
             "form": [],
             "role": "system",
-            "task_type": "user",
-            "rules": {"gate": "AND", "rules": ["R3"]}
+            "task_type": 2,
+            "rule_expression": {"gate": "AND", "rules": ["R3"]}
         },
         {
             "description": "Reject Application",
@@ -87,45 +87,45 @@
             "output_params": [],
             "form": [],
             "role": "system",
-            "task_type": "user",
-            "rules": {"gate": "AND", "rules": ["R4"]}
+            "task_type": 2,
+            "rule_expression": {"gate": "AND", "rules": ["R4"]}
         },
         {
-            "description": "End",
+            "description": "Ending task of the workflow",
             "handler": {
                 "module": "MetaSpecificationWorkflow.tasks",
                 "class": "Tasks",
                 "function": "end"
             },
-            "name": "DefineECRules",
+            "name": "End",
             "input_params": [],
             "output_params": [],
             "form": [],
             "role": "system",
-            "task_type": "user",
-            "rules": {"gate": "XOR", "rules": ["R5,R6"]}
-        },
+            "task_type": 2,
+            "rule_expression": {"gate": "XOR", "rules": ["R5","R6"]}
+        }
     ],
     "name": "AdmissionWorkflow",
-    "workflow_type": "user",
+    "workflow_type": 2,
     "rules": [
         {"name":"R1", "event": "E1", "condition": ""},
         {"name":"R2", "event": "E2", "condition": ""},
         {"name":"R3", "event": "E3", "condition": "C1"},
         {"name":"R4", "event": "E3", "condition": "C2"},
         {"name":"R5", "event": "E4", "condition": ""},
-        {"name":"R6", "event": "E5", "condition": ""},
+        {"name":"R6", "event": "E5", "condition": ""}
     ],
     "events": [
-        {"name":"E1", "task": "start", "state": "finished"},
-        {"name":"E2", "task": "AddApplication", "state": "finished"},
-        {"name":"E3", "task": "CheckApproval", "state": "finished"},
-        {"name":"E4", "task": "CallInterview", "state": "finished"},
-        {"name":"E5", "task": "RejectApplication", "state": "finished"},
-        {"name":"E6", "task": "end", "state": "finished"},
+        {"name":"E1", "task": "start", "state": 5},
+        {"name":"E2", "task": "AddApplication", "state": 5},
+        {"name":"E3", "task": "CheckApproval", "state": 5},
+        {"name":"E4", "task": "CallInterview", "state": 5},
+        {"name":"E5", "task": "RejectApplication", "state": 5},
+        {"name":"E6", "task": "End", "state": 5}
     ],
     "conditions": [
         {"name":"C1", "operator": ">=", "operand": "CGPA", "constant": "threshold"},
-        {"name":"C2", "operator": "<", "operand": "CGPA", "constant": "threshold"},
+        {"name":"C2", "operator": "<", "operand": "CGPA", "constant": "threshold"}
     ]
 }

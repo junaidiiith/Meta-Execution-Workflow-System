@@ -3,20 +3,19 @@
 
 {% block navbar %}
 	<header id="header" class="alt">
-				<h1><strong><a href="index.html">Meta Execution</a></strong> Workflow System (MEWS)</h1>
+				<h1><strong><a href="{% url 'home' %}">Meta Execution</a></strong> Workflow System (MEWS)</h1>
 				<nav id="nav">
 					<ul>
 						{% if not user.is_authenticated %}
 		                    <li class="active"><a href="{% url 'users:register' %}">Sign Up</a></li>
 		                    <li class="active"><a href="{% url 'login' %}">Sign In</a></li>
-			            {% endif %}
-			            {% if user.is_authenticated %}
-    						<li><a href="generic.html" %}">Specify</a></li>
-							<li><a href="generic.html">Execute</a></li>
+			            {% else %}
+							<li><a href="{% url 'executor:execute_workflow' %}">Execute</a></li>
+							<li><a href="{% url 'executor:specify_workflow' %}">Specify</a></li>
 							{% if user.is_superuser %}
 								<li><a href="{% url 'executor:role_assign_add' %}">Assign Roles</a></li>
 							{% endif%}
-							<li><a href="elements.html">Worklist</a></li>
+							<li><a href="{% url 'executor:worklist'%}">Worklist</a></li>
 		                    <li class="active"><a href="{% url 'logout' %}">Sign Out</a></li>
 			            {% endif %}
 					</ul>
@@ -42,7 +41,7 @@
 		          <th>Name</th>
 		          <th> Description </th> 
 		          <th>State</th>
-		          <th>Current Task</th>
+		          <th>Current Tasks</th>
 		          <th>Action</th>
 		        </tr>
 		      </thead>
@@ -52,19 +51,19 @@
 		            <td> {{ workflow_exec.workflow.name }}</td>
 		            <td> {{ workflow_exec.description }}</td>
 		            <td> {{ workflow_exec.state }} </td>
-		            <td> {{ workflow_exec.current_task.name }} Something </td>
+		            <td> {{ workflow_exec.current_tasks.name }} </td>
 		            <td> Proceed </td>
 		          </tr>
 		        {% endfor %}
 		      </tbody>
 		      <tbody>
-			      {% for workflow_exec in ready %}
+			      {% for workflow in ready %}
 			          <tr>
-			            <td> {{ workflow_exec.name }}</td>
-			            <td> {{ workflow_exec.description }}</td>
-			            <td> {{ workflow_exec.state }} </td>
-			            <td> {{ workflow_exec.current_task }} </td>
-			            <td><button type="button" class="btn btn-default"><a href="{% url 'executor:next_task' workflow_exec.id %}" style="color: white">Initiate</a></button> </td>
+			            <td> {{ workflow.name }}</td>
+			            <td> {{ workflow.description }}</td>
+			            <td> Ready </td>
+			            <td> Start </td>
+			            <td><button type="button" class="btn btn-default"><a href="{% url 'executor:start_workflow' workflow.id %}" style="color: white">Initiate</a></button> </td>
 			          </tr>
 			        {% endfor %}
 		       </tbody>

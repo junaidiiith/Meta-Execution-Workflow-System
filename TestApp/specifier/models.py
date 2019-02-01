@@ -34,6 +34,9 @@ class Task(Model):
 	handler = JSONField()
 	rule_expression = JSONField()
 
+	def __str__(self):
+		return self.name
+
 class RoleAssign(Model):
 	workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE )
 	role = models.ForeignKey(Role, on_delete=models.CASCADE)
@@ -47,16 +50,25 @@ class Condition(Model):
 	operator = JSONField()
 	constant = JSONField()
 
+	def __str__(self):
+		return self.name
+
 class Event(Model):
 	name = models.CharField(max_length=50)
 	task = models.ForeignKey(Task, on_delete=models.CASCADE)
 	state = models.IntegerField(choices = states, default=1)
 
+	def __str__(self):
+		return self.name
+
 class Rule(Model):
 	name = models.CharField(max_length=50)
 	workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE)
 	event = models.ForeignKey(Event, on_delete=models.CASCADE)
-	condition = models.ForeignKey(Condition, on_delete=models.CASCADE)
+	condition = models.ForeignKey(Condition, null=True, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return self.name
 
 class Task_Rule(Model):
 	task = models.ForeignKey(Task, on_delete=models.CASCADE)
