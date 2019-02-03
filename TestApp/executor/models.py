@@ -25,3 +25,7 @@ class EventDB(Model):
 	object_type = models.IntegerField(choices = objects)
 	object_id = models.IntegerField(primary_key=False, default=uuid.uuid4)
 	state = models.IntegerField(choices = states, default=1)
+
+class MetaUserAssoc(Model):
+	meta = models.ForeignKey(WorkflowExec, on_delete=models.CASCADE, related_name='metaflow')
+	user = models.ForeignKey(WorkflowExec, on_delete=models.CASCADE, related_name='userflow')

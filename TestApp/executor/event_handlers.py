@@ -11,10 +11,25 @@ from executor.utils import *
 def start_workflow(sender, **kwargs):
 	'''Create execution workflow instance
 	Change state of workflow to started and raise event to start the first task'''
-	flow = kwargs['flow']
+	
 	#create WorkflowExec instance
-	workflow_exec = get_workflow_exec(flow)
-	save_event(1,workflow_exec.id,2)
+
+	try:
+		meta_exec = kwargs['MetaExec']
+		userflow = Workflow.objects.get(id=meta_exec.data['Userflow'])
+		assert Userflow is not None
+		workflow_exec = get_workflow_exec(Userflow)
+		meta_exec.data['UserExec'] = workflow_exec
+		save_event(1,workflow_exec.id,2)
+		MetaUserAssoc(user=workflow_exec, meta=meta_exec).save()
+	except:
+		flow = kwargs['MetaFlow']
+		workflow_exec = get_workflow_exec(flow)
+		save_event(1,workflow_exec.id,2)
+		workflow_exec.data['Userflow'] = Userflow.id
+		workflow_exec.save()
+
+
 	#create TaskExec instance of start task
 	task = Task.objects.get(workflow=flow.id, name='start')
 	init_task_exec = get_task_exec(task,workflow_exec)
@@ -25,7 +40,11 @@ def start_workflow(sender, **kwargs):
 	#Find the next tasks of start task completed event
 	event = save_event(2,init_task_exec.id,5)
 	print("Start task ended event")
-	add_output_tasks(event)
+	if flow.type == 1:
+		add_output_tasks(event)
+	else:
+		workflow_exec.data['event_raised'] = event.id
+		workflow_exec.save()
 
 @receiver(end_flow, dispatch_uid=uuid4())
 def end_workflow(sender, **kwargs):
@@ -47,6 +66,9 @@ def start_workflow_task(sender, **kwargs):
 	'''check if task is meta or user and proceed accordingly'''
 	task_exec = kwargs['task_exec']
 	flow_exec = kwargs['flow_exec']
+	if flow_exec.state != 3:
+		save_event(1,flow_exec.id,3)
+
 	event = save_event(2,task_exec.id,2)
 
 	#update state of task as started
@@ -60,7 +82,11 @@ def end_workflow_task(sender, **kwargs):
 	flow_exec = kwargs['flow_exec']
 	event = save_event(2,task_exec.id,5)
 	print("-----Task execution ended for ", task_exec.task.name, " -----")
-	add_output_tasks(event)
+	if flow_exec.workflow.type == 1:
+		add_output_tasks(event)
+	else:
+		workflow_exec.data['event_raised'] = event.id
+		workflow_exec.save()
 
 @receiver(execute_task, dispatch_uid=uuid4())
 def execute_workflow_task(sender, **kwargs):

@@ -2,7 +2,7 @@ from django.core import signals
 from django.dispatch import receiver, Signal
 
 
-start_flow = Signal(providing_args=['flow'])
+start_flow = Signal(providing_args=['MetaFlow', 'UserFlow', 'MetaExec'])
 end_flow = Signal(providing_args=['flow'])
 stop_flow = Signal(providing_args=['flow'])
 

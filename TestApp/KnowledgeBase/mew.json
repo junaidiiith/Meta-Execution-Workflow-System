@@ -5,9 +5,9 @@
         "MetaExecutionWorkflow.tasks"
     ],
     "roles": [
-        "admin",
+        "system",
         "user",
-        "system"
+        "admin"
     ],
     "tasks": [
         {
@@ -54,7 +54,7 @@
             "input_params": ["user_workflow_id"],
             "output_params": [],
             "form": [],
-            "role": "admin",
+            "role": "system",
             "task_type": 1,
             "rule_expression": {"gate": "AND", "rules": ["R2"]}
         },
@@ -70,7 +70,7 @@
             "input_params": ["user_workflow_id"],
             "output_params": ["user_workflow_task","task_availibility"],
             "form": [],
-            "role": "admin",
+            "role": "system",
             "task_type": 1,
             "rule_expression": {"gate": "XOR", "rules": ["R3","R7"]}
         },
@@ -102,7 +102,7 @@
             "input_params": ["user_workflow_task"],
             "output_params": ["execution_status"],
             "form": [],
-            "role": "admin",
+            "role": "system",
             "task_type": 1,
             "rule_expression": {"gate": "AND", "rules": ["R6"]}
         },
@@ -118,7 +118,7 @@
             "input_params": [],
             "output_params": [],
             "form": [],
-            "role": "admin",
+            "role": "system",
             "task_type": 1,
             "rule_expression": {"gate": "AND", "rules": ["R5"]}
         }

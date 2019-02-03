@@ -81,6 +81,9 @@ def get_event(eventdb):
 		task_exec = TaskExec.objects.get(id = eventdb.object_id)
 		event = Event.objects.get(task=task_exec.task, state=eventdb.state )
 		return event, task_exec.workflow_exec
+def get_event_db(event):
+	Eventdb.objects.get()
+
 
 def find_next_tasks(eventdb):
 	#find the possible next tasks
