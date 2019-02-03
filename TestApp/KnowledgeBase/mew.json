@@ -31,7 +31,7 @@
             "handler": {
                 "module": "MetaExecutionWorkflow.tasks",
                 "class": "Tasks",
-                "function": "cwi"
+                "function": "create_workflow_instance"
             },
             
             "name": "CWI",
@@ -47,7 +47,7 @@
             "handler": {
                 "module": "MetaExecutionWorkflow.tasks",
                 "class": "Tasks",
-                "function": "update_state_running"
+                "function": "update_workflow_state"
             },
             
             "name": "UpdateState",
@@ -63,7 +63,7 @@
             "handler": {
                 "module": "MetaExecutionWorkflow.tasks",
                 "class": "Tasks",
-                "function": "get_next_task"
+                "function": "get_a_task"
             },
             
             "name": "GetATask",

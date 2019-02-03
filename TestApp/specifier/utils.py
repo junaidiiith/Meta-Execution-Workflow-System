@@ -118,7 +118,23 @@ def flush_database():
         for obj in table.objects.all(): 
             obj.delete()
 
-# flush_database()
-# load_workflow('KnowledgeBase/admissions.json')
-# load_workflow('KnowledgeBase/mew.json')
+flush_database()
+load_workflow('KnowledgeBase/admissions.json')
+load_workflow('KnowledgeBase/mew.json')
 # load_workflow('KnowledgeBase/msw.json')
+
+
+# from TestApp.mews_signals import *
+# from uuid import uuid4
+# from executor.models import *
+# from specifier.models import *
+# from django.dispatch import receiver
+# from executor.utils import *
+# from specifier.utils import *
+# from executor.event_handlers import *
+# MW = Workflow.objects.all()[1]
+# UW = Workflow.objects.all()[0]
+# start_flow.send(None, MetaFlow=MW, UserFlow=UW)
+# for taskexec in TaskExec.objects.all().exclude(state=5).exclude(state=6):
+#     if taskexec.task.task_type == 1:
+#         start_task.send(None, task_exec=taskexec)

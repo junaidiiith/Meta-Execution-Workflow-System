@@ -2,10 +2,24 @@ from TestApp.mews_signals import *
 from executor.models import *
 from specifier.models import *
 from django.dispatch import receiver
-from executor.utils import *
+from executor.Base_Handlers import base0
 
+def my_import(name):
+        __import__(name.rsplit('.', 1)[0])
+        components = name.split('.')
+        mod = __import__(components[0])
+        print(mod)
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        return mod
 
-def dispatch(task_exec):
+def dispatch(task_exec, *args, **kwargs):
+	handler = task_exec.task.handler
+	cls, func = my_import("executor.Base_Handlers.base0"), handler['function']
+	callback = getattr(cls, func)
+	kwargs['task_exec'] = task_exec
+	d = callback(*args, **kwargs) or None
+	return d
 	print("Task ",task_exec.task.name," executed successfully")
 
 def save_event(object_type, object_id, state):
@@ -81,8 +95,9 @@ def get_event(eventdb):
 		task_exec = TaskExec.objects.get(id = eventdb.object_id)
 		event = Event.objects.get(task=task_exec.task, state=eventdb.state )
 		return event, task_exec.workflow_exec
-def get_event_db(event):
-	Eventdb.objects.get()
+
+# def get_event_db(event):
+# 	EventDB.objects.get()
 
 
 def find_next_tasks(eventdb):
@@ -97,7 +112,9 @@ def find_next_tasks(eventdb):
 			task = task_rule.task
 			if possible(task):
 				possible_tasks.append(task)
-
+	print("Next task are: ", end="")
+	for task in possible_tasks:
+		print(task.name)
 	return possible_tasks, workflow_exec
 
 
@@ -118,3 +135,4 @@ def add_output_tasks(eventdb):
 	else:
 		for task in tasks:
 			add_task_to_unassigned_list(task, workflow_exec)
+
