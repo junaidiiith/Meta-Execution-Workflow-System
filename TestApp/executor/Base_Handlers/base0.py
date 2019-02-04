@@ -33,33 +33,44 @@ def get_a_task(**kwargs):
 	tasks, _ = utils.find_next_tasks(event)
 
 	assert tasks is not None
-	user_tasks = []
-	for task in tasks:
-		user_task_exec = utils.get_task_exec(task, workflow_exec)
-		event = utils.save_event(2,user_task_exec.id,1)
-		user_tasks.append(user_task_exec.id)
-	print("Adding user tasks for execution")
-	workflow_exec.data['current_user_tasks'] = user_tasks
-	workflow_exec.save()
+	if len(tasks) == 1 and tasks[0].name.lower() == 'end':
+		workflow_exec.data['current_user_tasks'] = {}
+		workflow_exec.data['task_availibility'] = False
+		workflow_exec.save()
+	else:
+		user_tasks = []
+		for task in tasks:
+			user_task_exec = utils.get_task_exec(task, workflow_exec)
+			event = utils.save_event(2,user_task_exec.id,1)
+			user_tasks.append(user_task_exec.id)
+		print("Adding user tasks for execution")
+		try:
+			workflow_exec.data['current_user_tasks'] += user_tasks
+		except:
+			workflow_exec.data['current_user_tasks'] = user_tasks
+		workflow_exec.data['task_availibility'] = True
+		workflow_exec.save()
 
 def check_resources(**kwargs):
 	print("resources available")
 
 def execute(**kwargs):
 	task_exec = kwargs['task_exec']
-	workflow_exec = task_exec.workflow_exec
-	user_task = workflow_exec.data['current_user_tasks'][0]
-	user_task = TaskExec.objects.get(id=user_task)
+	print("Executing ", task_exec.task.name, task_exec.data)
+	user_task = task_exec.data['user_task']
 	assert user_task is not None
+	workflow_exec = task_exec.workflow_exec
 
-	flowId = workflow_exec.data['UserExec']
+	flowId = task_exec.workflow_exec.data['UserExec']
 	flow = WorkflowExec.objects.get(id=flowId)
 
-	event = utils.save_event(object_type=2, object_id=user_task.id, state=5)
+	event = utils.save_event(object_type=2, object_id=user_task, state=5)
 	assert flow is not None
 	flow.data['event_raised'] = event.id
 	flow.save()
-	workflow_exec.data['current_user_tasks'].remove(user_task.id)
+
+	workflow_exec.data['current_user_tasks'].remove(user_task)
+	utils.update_current_tasks_list(workflow_exec)
 	workflow_exec.save()
 	print("Execution complete")
 	# dispatch()   #Code to execute the task, some processing

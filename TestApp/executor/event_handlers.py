@@ -95,6 +95,8 @@ def execute_workflow_task(sender, **kwargs):
 	task_exec = kwargs['task_exec']
 	utils.dispatch(task_exec)
 	print("-----Executed workflow task: " , task_exec.task.name," -----")
+	if task_exec.task.task_type == 1:
+		utils.update_current_tasks_list(task_exec.workflow_exec)
 	end_task.send(sender=None, task_exec=task_exec)
 
 @receiver(stop_task, dispatch_uid=uuid4())

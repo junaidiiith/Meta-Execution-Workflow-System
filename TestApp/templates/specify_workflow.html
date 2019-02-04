@@ -1,0 +1,23 @@
+<!-- Two -->
+{% extends "base.html" %}
+{% block section_two %}
+	<section id="two" class="wrapper style2 special">
+		<div class="container">
+			{% if not user.is_authenticated %}
+				<header class="major">
+					<h2>You are not authorized to see this page</h2>
+				</header>	
+			{% else %}
+				<header class="major">
+					<h2>Specification of a workflow</h2>
+				</header>
+				<form method="post" enctype="multipart/form-data">
+			    {% csrf_token %}
+	              {{ form.as_p }}
+	              <button type="submit">Submit</button>
+			  </form>
+			{% endif %}
+		</div>
+	</section>
+{% endblock section_two %}
+

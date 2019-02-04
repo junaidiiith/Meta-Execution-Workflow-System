@@ -1,29 +1,5 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
-
-{% block navbar %}
-	<header id="header" class="alt">
-				<h1><strong><a href="{% url 'home' %}">Meta Execution</a></strong> Workflow System (MEWS)</h1>
-				<nav id="nav">
-					<ul>
-						{% if not user.is_authenticated %}
-		                    <li class="active"><a href="{% url 'users:register' %}">Sign Up</a></li>
-		                    <li class="active"><a href="{% url 'login' %}">Sign In</a></li>
-			            {% else %}
-							<li><a href="{% url 'executor:execute_workflow' %}">Execute</a></li>
-							<li><a href="{% url 'executor:specify_workflow' %}">Specify</a></li>
-							{% if user.is_superuser %}
-								<li><a href="{% url 'executor:role_assign_add' %}">Assign Roles</a></li>
-							{% endif%}
-							<li><a href="{% url 'executor:worklist'%}">Worklist</a></li>
-		                    <li class="active"><a href="{% url 'logout' %}">Sign Out</a></li>
-			            {% endif %}
-					</ul>
-				</nav>
-			</header>
-
-			<a href="#menu" class="navPanelToggle"><span class="fa fa-bars"></span></a>
-{% endblock navbar %}
 {%block section_one%}
 		<div class="container 100%">
 		<div class="row 200%">
@@ -31,7 +7,7 @@
 				{%if user.is_authenticated %}
 				<header class="major">
 					<h2>Currently Running/Ready Workflows</h2>
-					<p>For user - {{user.first_name}} {{user.last_name}}</p>
+					<p>For user - {{user.username}} </p>
 				</header>
 			</div>
 			<div class="6u$ 12u$(medium)">
@@ -48,10 +24,10 @@
 		      <tbody>
 		        {% for workflow_exec in running %}
 		          <tr>
-		            <td> {{ workflow_exec.workflow.name }}</td>
-		            <td> {{ workflow_exec.description }}</td>
-		            <td> {{ workflow_exec.state }} </td>
-		            <td> {{ workflow_exec.current_tasks.name }} </td>
+		            <td> {{ workflow_exec.ufo.workflow.name }}</td>
+		            <td> {{ workflow_exec.ufo.workflow.description }}</td>
+		            <td> {{ states|get_item:workflow_exec.state }} </td>
+		            <td> {{ workflow_exec.current_tasks }} </td>
 		            <td> Proceed </td>
 		          </tr>
 		        {% endfor %}

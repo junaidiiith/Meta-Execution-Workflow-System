@@ -8,6 +8,5 @@ urlpatterns = [
     path('next_task/<int:pk>', views.next_task, name='next_task'),
     path('load-roles/', views.load_roles, name='ajax_load_roles'),
     path('specify-workflow/', views.specify_workflow, name='specify_workflow'),
-    path('execute-workflow/', views.show_executable, name='execute_workflow'),
     path('worklist/', views.show_worklist, name='worklist'),
 ]

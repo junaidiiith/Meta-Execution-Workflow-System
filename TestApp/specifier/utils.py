@@ -1,5 +1,6 @@
 from .models import *
 import json
+from executor.models import *
 
 def load_workflow_attribs(attrs, workflow):
     w = Workflow()
@@ -113,14 +114,14 @@ def load_workflow(workflow):
     print("Successfully loaded workflow")
 
 def flush_database():
-    tables = [Workflow,Role,Event,Condition,Rule, Task_Rule,Task]
+    tables = [Workflow,Role,Event,Condition,Rule, Task_Rule,Task, WorkflowExec, EventDB, Worklist, MetaUserAssoc, TaskExec]
     for table in tables: 
         for obj in table.objects.all(): 
             obj.delete()
 
-flush_database()
-load_workflow('KnowledgeBase/admissions.json')
-load_workflow('KnowledgeBase/mew.json')
+# flush_database()
+# load_workflow('KnowledgeBase/admissions.json')
+# load_workflow('KnowledgeBase/mew.json')
 # load_workflow('KnowledgeBase/msw.json')
 
 
@@ -135,6 +136,10 @@ load_workflow('KnowledgeBase/mew.json')
 # MW = Workflow.objects.all()[1]
 # UW = Workflow.objects.all()[0]
 # start_flow.send(None, MetaFlow=MW, UserFlow=UW)
-# for taskexec in TaskExec.objects.all().exclude(state=5).exclude(state=6):
-#     if taskexec.task.task_type == 1:
-#         start_task.send(None, task_exec=taskexec)
+#     running_tasks = TaskExec.objects.exclude(state=5).exclude(state=6)
+#     running_tasks = [tsk for tsk in running_tasks if tsk.task.task_type == 1]
+#     user_tasks = list()
+#     for task in running_tasks:
+#         user_tasks.append({"user_task": task.data['user_task'], "meta_task": task})
+# c = user_tasks[0]['meta_task']
+# start_task.send(None, task_exec=c)

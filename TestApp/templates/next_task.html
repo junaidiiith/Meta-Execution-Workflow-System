@@ -1,19 +1,5 @@
 <!-- Two -->
 {% extends "base.html" %}
-{% block navbar %}
-	<header id="header" class="alt">
-				<h1><strong><a href="index.html">Meta Execution</a></strong> Workflow System (MEWS)</h1>
-				<nav id="nav">
-					<ul>
-						{% if not user.is_authenticated %}
-		                    <li class="active"><a href="{% url 'users:register' %}">Sign Up</a></li>
-   		                    <li class="active"><a href="{% url 'login' %}">Sign In</a></li>
-			            {% endif %}
-					</ul>
-				</nav>
-			</header>
-			<a href="#menu" class="navPanelToggle"><span class="fa fa-bars"></span></a>
-{% endblock navbar %}
 {% block section_two %}
 	<section id="two" class="wrapper style2 special">
 		<div class="container">
@@ -23,7 +9,7 @@
 				</header>	
 			{% else %}
 				<header class="major">
-					<h2>Execution of task - {{ task.name }}</h2>
+					<h2>Execution of task - {{ task.description }}</h2>
 				</header>
 				<form method="post" enctype="multipart/form-data">
 			    {% csrf_token %}

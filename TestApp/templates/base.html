@@ -9,9 +9,28 @@
 	</head>
 	<body class="landing">
 		<!-- Header -->
-		{% block navbar %}
-			
-		{% endblock navbar %}
+		<!-- {% block navbar %} -->
+			<header id="header" class="alt">
+				<h1><strong><a href="{% url 'home' %}">Meta Execution</a></strong> Workflow System (MEWS)</h1>
+				<nav id="nav">
+					<ul>
+						{% if not user.is_authenticated %}
+		                    <li class="active"><a href="{% url 'users:register' %}">Sign Up</a></li>
+		                    <li class="active"><a href="{% url 'login' %}">Sign In</a></li>
+			            {% else %}
+							<li><a href="{% url 'executor:specify_workflow' %}">Specify</a></li>
+							{% if user.is_superuser %}
+								<li><a href="{% url 'executor:role_assign_add' %}">Assign Roles</a></li>
+							{% endif%}
+							<li><a href="{% url 'executor:worklist'%}">Worklist</a></li>
+		                    <li class="active"><a href="{% url 'logout' %}">Sign Out</a></li>
+			            {% endif %}
+					</ul>
+				</nav>
+			</header>
+
+			<a href="#menu" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+		<!-- {% endblock navbar %} -->
 		<!-- Banner -->
 			<section id="banner">
 				{% block banner %}
@@ -87,10 +106,10 @@
 				</section> -->
 
 		<!-- Scripts -->
+			<script src="{% static 'assets/js/jquery-3.3.1.min.js' %}"></script>
 			<script src="{% static 'assets/js/jquery.min.js' %}"></script>
 			<script src="{% static 'assets/js/skel.min.js' %}"></script>
 			<script src="{% static 'assets/js/util.js' %}"></script>
 			<script src="{% static 'assets/js/main.js' %}"></script>
-			<script src="{% static 'assets/js/jquery-3.3.1.min.js' %}"></script>
 	</body>
 </html>

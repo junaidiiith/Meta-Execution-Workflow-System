@@ -56,35 +56,44 @@ def get_task_exec(task,flow_exec):
 	task_exec.save()
 	return task_exec
 
-def check_rule_expression(expr):
-	print(expr)
+def check_rule_expression(expr, workflow_exec):
 	if expr:
 		gate = expr['gate']
 		if gate.lower() == 'and':
 			# print("Checking here")
-			return all([evaluate_rule(rule_id) for rule_id in expr['rules']])
+			return all([evaluate_rule(rule_id, workflow_exec) for rule_id in expr['rules']])
 		else:
-			return any([evaluate_rule(rule_id) for rule_id in expr['rules']])
+			return any([evaluate_rule(rule_id, workflow_exec) for rule_id in expr['rules']])
 	return True
 
-def evaluate_rule(rule_id):
+def evaluate_rule(rule_id, workflow_exec):
 	rule = Rule.objects.get(id=rule_id)
-	# print("evaluate_rule: ", rule.condition)
-	f = int(input())
-	if f == 1:
+	print("evaluate_rule: ", rule.condition, rule.event)
+	return check_event(rule.event, workflow_exec) and check_condition(rule.condition, workflow_exec)
+
+def check_condition(condition, workflow_exec):
+	print(workflow_exec.workflow.constants)
+	if condition is None:
 		return True
-	return False
-	return check_event(rule.event) and check_condition(rule.condition)
+	print("Workflow data",workflow_exec.data)
+	# constant = workflow_exec.workflow.constants[condition.constant]
+	constant = str(condition.constant)
+	operand = str(workflow_exec.data[condition.operand])
+	operator = condition.operator
+	print(operand,operator,constant)
+	return eval(constant+operator+operand)
 
-def check_condition(condition):
-	return True
+def check_event(event, workflow_exec):
+	try:
+		taskexec = TaskExec.objects.filter(workflow_exec=workflow_exec).filter(task=Task.objects.get(id=event.task_id))[0]
+		eventdb = EventDB.objects.filter(object_type=2, object_id=taskexec.id, state=event.state)
+		return len(eventdb) > 0
+	except:
+		return False
 
-def check_event(event):
-	return True
 
-
-def possible(task):
-	if check_rule_expression(task.rule_expression):
+def possible(task, workflow_exec):
+	if check_rule_expression(task.rule_expression, workflow_exec):
 		return True
 	return False
 
@@ -96,9 +105,16 @@ def get_event(eventdb):
 		event = Event.objects.get(task=task_exec.task, state=eventdb.state )
 		return event, task_exec.workflow_exec
 
-# def get_event_db(event):
-# 	EventDB.objects.get()
-
+def update_current_tasks_list(workflow_exec):
+	try:
+		current_tasks = workflow_exec.data['current_user_tasks']
+		newList = list()
+		for task in current_tasks:
+			if TaskExec.objects.get(id=task).state not in [5,6]:
+				newList.append(task)
+		workflow_exec.data['current_user_tasks'] = newList
+	except:
+		pass
 
 def find_next_tasks(eventdb):
 	#find the possible next tasks
@@ -110,7 +126,8 @@ def find_next_tasks(eventdb):
 		task_rules = Task_Rule.objects.filter(rule=rule)
 		for task_rule in task_rules:
 			task = task_rule.task
-			if possible(task):
+			print("checking possible: ", task.name)
+			if possible(task, workflow_exec):
 				possible_tasks.append(task)
 	print("Next task are: ", end="")
 	for task in possible_tasks:
@@ -119,12 +136,29 @@ def find_next_tasks(eventdb):
 
 
 def add_task_to_unassigned_list(task, workflow_exec):
-	task_exec = get_task_exec(task, workflow_exec)
-	event = save_event(2,task_exec.id,1)
-	# print(task.role)
-	if task.role.name == 'system':
-		# print("Starting task: ", task.name)
-		start_task.send(None,task_exec=task_exec ,flow_exec=workflow_exec)
+	try:
+		current_user_tasks = workflow_exec.data['current_user_tasks']
+		if not current_user_tasks:
+			task_exec = get_task_exec(task, workflow_exec)
+			start_task.send(None, task_exec=task_exec)
+		# print("Current tasks ", current_user_tasks)
+		else:
+			for user_task in current_user_tasks:
+
+				task_exec = get_task_exec(task, workflow_exec)
+				task_exec.data['user_task'] = user_task	
+				task_exec.save()
+				event = save_event(2,task_exec.id,1)
+
+				if task.role.name == "system" or TaskExec.objects.get(id=user_task).task.role.name == "system":
+					start_task.send(None, task_exec=task_exec)
+	except:
+		task_exec = get_task_exec(task, workflow_exec)
+		save_event(2,task_exec.id,1)
+		# print(task.role)
+		if task.role.name == 'system':
+			# print("Starting task: ", task.name)
+			start_task.send(None,task_exec=task_exec)
 
 def add_output_tasks(eventdb):
 	tasks, workflow_exec = find_next_tasks(eventdb)
