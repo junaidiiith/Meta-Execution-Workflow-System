@@ -85,6 +85,8 @@ def show_worklist(request):
 	running_tasks = [tsk for tsk in running_tasks if tsk.task.task_type == 1]
 	user_tasks = list()
 	for task in running_tasks:
+		tsk = task
+		print(tsk.task.name)
 		try:
 			user_tasks.append({"user_task": TaskExec.objects.get(id=task.data['user_task']), "meta_task": task})
 		except:
@@ -93,11 +95,11 @@ def show_worklist(request):
 	print(user_tasks)
 	if not request.user.is_superuser:
 		roles = RoleAssign.objects.filter(user=request.user)
-		tasks = list()
+		user_tasks = list()
 		for tsk in user_tasks:
 			task = tsk.task
 			if (task.role in roles) and (task.state != 5 or task.state != 6):
-				tasks.append(task_exec)
+				user_tasks.append(tsk)
 	else:
 		tasks = user_tasks
 
@@ -134,7 +136,7 @@ def load_roles(request):
 def next_task(request, pk):
 	task_exec = get_object_or_404(TaskExec, id = pk)
 	user_task = TaskExec.objects.get(id=task_exec.data['user_task'])
-	print(user_task)
+	print("Next task for execution is", user_task.task.name)
 	assert task_exec is not None and user_task is not None
 	user = request.user
 	if request.method == 'POST':

@@ -99,7 +99,7 @@ def load_task_rule_association(tasks, rules, tasks_json):
 
 
 def load_workflow(workflow):
-    workflow = json.load(open(workflow))
+    workflow = json.load(workflow)
     w_attribs = ['name','workflow_type','description','constants','resources']
     c_attribs = ['name', 'operator', 'operand', 'constant']
     t_attribs = ['name','description', 'role', 'task_type', 'input_params','output_params','form','handler','task_type']

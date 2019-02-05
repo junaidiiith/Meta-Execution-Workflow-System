@@ -25,7 +25,7 @@ def start_workflow(sender, **kwargs):
 	except:
 		flow = kwargs['MetaFlow']
 		workflow_exec = utils.get_workflow_exec(flow)
-		utils.save_event(1,workflow_exec.id,2)
+		utils.save_event(1,workflow_exec.id,3)
 		workflow_exec.data['UserFlow'] = kwargs['UserFlow'].id
 		workflow_exec.save()
 
@@ -40,6 +40,7 @@ def start_workflow(sender, **kwargs):
 	event = utils.save_event(2,init_task_exec.id,5)
 	print("Start task ended event")
 	if flow.workflow_type == 1:
+		print("Find next tasks")
 		utils.add_output_tasks(event)
 	else:
 		print("Saving event: ", event.id, " for User workflow ", workflow_exec.workflow.name)

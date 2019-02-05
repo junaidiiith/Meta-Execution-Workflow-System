@@ -103,6 +103,7 @@ def get_event(eventdb):
 	else:
 		task_exec = TaskExec.objects.get(id = eventdb.object_id)
 		event = Event.objects.get(task=task_exec.task, state=eventdb.state )
+		print("Task is: ", task_exec.task.name)
 		return event, task_exec.workflow_exec
 
 def update_current_tasks_list(workflow_exec):
@@ -110,9 +111,12 @@ def update_current_tasks_list(workflow_exec):
 		current_tasks = workflow_exec.data['current_user_tasks']
 		newList = list()
 		for task in current_tasks:
+			print("Checking completion of ", TaskExec.objects.get(id=task).task.name)
 			if TaskExec.objects.get(id=task).state not in [5,6]:
+				print("Adding ", TaskExec.objects.get(id=task).task.name, " to new list of current_user_tasks")
 				newList.append(task)
 		workflow_exec.data['current_user_tasks'] = newList
+		print("current_user_tasks are ", newList)
 	except:
 		pass
 
@@ -140,6 +144,7 @@ def add_task_to_unassigned_list(task, workflow_exec):
 		current_user_tasks = workflow_exec.data['current_user_tasks']
 		if not current_user_tasks:
 			task_exec = get_task_exec(task, workflow_exec)
+			print("Starting execution of ", task.name)
 			start_task.send(None, task_exec=task_exec)
 		# print("Current tasks ", current_user_tasks)
 		else:
@@ -151,13 +156,14 @@ def add_task_to_unassigned_list(task, workflow_exec):
 				event = save_event(2,task_exec.id,1)
 
 				if task.role.name == "system" or TaskExec.objects.get(id=user_task).task.role.name == "system":
+					print("Starting task ", task_exec.task.name)
 					start_task.send(None, task_exec=task_exec)
 	except:
 		task_exec = get_task_exec(task, workflow_exec)
 		save_event(2,task_exec.id,1)
 		# print(task.role)
 		if task.role.name == 'system':
-			# print("Starting task: ", task.name)
+			print("Starting task: ", task.name)
 			start_task.send(None,task_exec=task_exec)
 
 def add_output_tasks(eventdb):

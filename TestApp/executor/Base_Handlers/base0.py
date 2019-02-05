@@ -28,6 +28,7 @@ def get_a_task(**kwargs):
 	assert flow is not None
 	print(flow.workflow.name, flow.data)
 	event = EventDB.objects.get(id=flow.data['event_raised'])
+	
 	assert event is not None
 
 	tasks, _ = utils.find_next_tasks(event)
@@ -43,7 +44,7 @@ def get_a_task(**kwargs):
 			user_task_exec = utils.get_task_exec(task, workflow_exec)
 			event = utils.save_event(2,user_task_exec.id,1)
 			user_tasks.append(user_task_exec.id)
-		print("Adding user tasks for execution")
+		print("Adding user tasks for execution: ", user_tasks)
 		try:
 			workflow_exec.data['current_user_tasks'] += user_tasks
 		except:
@@ -61,18 +62,18 @@ def execute(**kwargs):
 	assert user_task is not None
 	workflow_exec = task_exec.workflow_exec
 
-	flowId = task_exec.workflow_exec.data['UserExec']
-	flow = WorkflowExec.objects.get(id=flowId)
+	UserflowId = task_exec.workflow_exec.data['UserExec']
+	Userflow = WorkflowExec.objects.get(id=UserflowId)
 
 	event = utils.save_event(object_type=2, object_id=user_task, state=5)
-	assert flow is not None
-	flow.data['event_raised'] = event.id
-	flow.save()
-
+	assert Userflow is not None
+	Userflow.data['event_raised'] = event.id
+	Userflow.save()
+	
 	workflow_exec.data['current_user_tasks'].remove(user_task)
 	utils.update_current_tasks_list(workflow_exec)
 	workflow_exec.save()
-	print("Execution complete")
+	
 	# dispatch()   #Code to execute the task, some processing
 
 def end(**kwargs):
