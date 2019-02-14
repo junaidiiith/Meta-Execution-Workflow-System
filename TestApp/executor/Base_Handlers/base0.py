@@ -41,7 +41,7 @@ def get_a_task(**kwargs):
 	else:
 		user_tasks = []
 		for task in tasks:
-			user_task_exec = utils.get_task_exec(task, workflow_exec)
+			user_task_exec = utils.get_task_exec(task, flow)
 			event = utils.save_event(2,user_task_exec.id,1)
 			user_tasks.append(user_task_exec.id)
 		print("Adding user tasks for execution: ", user_tasks)
@@ -65,10 +65,8 @@ def execute(**kwargs):
 	UserflowId = task_exec.workflow_exec.data['UserExec']
 	Userflow = WorkflowExec.objects.get(id=UserflowId)
 
-	event = utils.save_event(object_type=2, object_id=user_task, state=5)
+	execute_task.send(None, task_exec=TaskExec.objects.get(id=user_task))
 	assert Userflow is not None
-	Userflow.data['event_raised'] = event.id
-	Userflow.save()
 	
 	workflow_exec.data['current_user_tasks'].remove(user_task)
 	utils.update_current_tasks_list(workflow_exec)

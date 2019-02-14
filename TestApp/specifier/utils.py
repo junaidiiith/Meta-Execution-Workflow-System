@@ -99,7 +99,7 @@ def load_task_rule_association(tasks, rules, tasks_json):
 
 
 def load_workflow(workflow):
-    workflow = json.load(workflow)
+    workflow = json.load(open(workflow))
     w_attribs = ['name','workflow_type','description','constants','resources']
     c_attribs = ['name', 'operator', 'operand', 'constant']
     t_attribs = ['name','description', 'role', 'task_type', 'input_params','output_params','form','handler','task_type']
@@ -118,11 +118,11 @@ def flush_database():
     for table in tables: 
         for obj in table.objects.all(): 
             obj.delete()
-
-# flush_database()
-# load_workflow('KnowledgeBase/admissions.json')
-# load_workflow('KnowledgeBase/mew.json')
-# load_workflow('KnowledgeBase/msw.json')
+#
+flush_database()
+load_workflow('KnowledgeBase/admissions.json')
+load_workflow('KnowledgeBase/mew.json')
+load_workflow('KnowledgeBase/msw.json')
 
 
 # from TestApp.mews_signals import *

@@ -125,7 +125,7 @@
         {"name":"E6", "task": "End", "state": 5}
     ],
     "conditions": [
-        {"name":"C1", "operator": ">=", "operand": "CGPA", "constant": "threshold"},
-        {"name":"C2", "operator": "<", "operand": "CGPA", "constant": "threshold"}
+        {"name":"C1", "operator": ">=", "operand": "CGPA", "constant": "7"},
+        {"name":"C2", "operator": "<", "operand": "CGPA", "constant": "7"}
     ]
 }

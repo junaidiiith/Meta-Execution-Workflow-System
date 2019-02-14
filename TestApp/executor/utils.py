@@ -1,8 +1,9 @@
 from TestApp.mews_signals import *
 from executor.models import *
 from specifier.models import *
-from django.dispatch import receiver
+import ast
 from executor.Base_Handlers import base0
+
 
 def my_import(name):
         __import__(name.rsplit('.', 1)[0])
@@ -19,8 +20,9 @@ def dispatch(task_exec, *args, **kwargs):
 	callback = getattr(cls, func)
 	kwargs['task_exec'] = task_exec
 	d = callback(*args, **kwargs) or None
+	print("Task ", task_exec.task.name, " executed successfully")
 	return d
-	print("Task ",task_exec.task.name," executed successfully")
+
 
 def save_event(object_type, object_id, state):
 	event = EventDB(object_type=object_type, object_id=object_id, state=state)
@@ -54,6 +56,7 @@ def get_task_exec(task,flow_exec):
 	assert task is not None
 	task_exec = TaskExec(workflow_exec=flow_exec, task=task, state=1)
 	task_exec.save()
+	print("Task :", task, " and flow: ", flow_exec)
 	return task_exec
 
 def check_rule_expression(expr, workflow_exec):
@@ -72,25 +75,30 @@ def evaluate_rule(rule_id, workflow_exec):
 	return check_event(rule.event, workflow_exec) and check_condition(rule.condition, workflow_exec)
 
 def check_condition(condition, workflow_exec):
+	# return True
 	print(workflow_exec.workflow.constants)
 	if condition is None:
 		return True
 	print("Workflow data",workflow_exec.data)
+	workflow_exec.data['CGPA'] = '9'
 	# constant = workflow_exec.workflow.constants[condition.constant]
 	constant = str(condition.constant)
 	operand = str(workflow_exec.data[condition.operand])
 	operator = condition.operator
 	print(operand,operator,constant)
-	return eval(constant+operator+operand)
+	expr = eval(operand+operator+constant)
+	return expr
 
 def check_event(event, workflow_exec):
 	try:
+		for t in TaskExec.objects.filter(workflow_exec=workflow_exec):
+			print(t.task.name,t.task.id)
+		print("Event task is: ", event.task.name, " id: ", event.task.id)
 		taskexec = TaskExec.objects.filter(workflow_exec=workflow_exec).filter(task=Task.objects.get(id=event.task_id))[0]
 		eventdb = EventDB.objects.filter(object_type=2, object_id=taskexec.id, state=event.state)
 		return len(eventdb) > 0
 	except:
 		return False
-
 
 def possible(task, workflow_exec):
 	if check_rule_expression(task.rule_expression, workflow_exec):
@@ -103,8 +111,9 @@ def get_event(eventdb):
 	else:
 		task_exec = TaskExec.objects.get(id = eventdb.object_id)
 		event = Event.objects.get(task=task_exec.task, state=eventdb.state )
-		print("Task is: ", task_exec.task.name)
+		print("Task is: ", task_exec.task.name ," and workflow exec is: ", task_exec.workflow_exec)
 		return event, task_exec.workflow_exec
+
 
 def update_current_tasks_list(workflow_exec):
 	try:
@@ -116,6 +125,8 @@ def update_current_tasks_list(workflow_exec):
 				print("Adding ", TaskExec.objects.get(id=task).task.name, " to new list of current_user_tasks")
 				newList.append(task)
 		workflow_exec.data['current_user_tasks'] = newList
+		if not newList:
+			workflow_exec.data['task_availibility'] = False
 		print("current_user_tasks are ", newList)
 	except:
 		pass
@@ -133,9 +144,10 @@ def find_next_tasks(eventdb):
 			print("checking possible: ", task.name)
 			if possible(task, workflow_exec):
 				possible_tasks.append(task)
-	print("Next task are: ", end="")
-	for task in possible_tasks:
-		print(task.name)
+				print("Task: ", task.name, " possible")
+	# print("Next task are: ", end="")
+	# for task in possible_tasks:
+	# 	print(task.name)
 	return possible_tasks, workflow_exec
 
 

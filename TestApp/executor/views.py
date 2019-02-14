@@ -92,7 +92,7 @@ def show_worklist(request):
 		except:
 			print("No user task found!! for ", task)
 
-	print(user_tasks)
+	print("User tasks are " ,user_tasks)
 	if not request.user.is_superuser:
 		roles = RoleAssign.objects.filter(user=request.user)
 		user_tasks = list()
@@ -144,6 +144,7 @@ def next_task(request, pk):
 		if form.is_valid():
 			user_task.data = {**form.data, **user_task.data}
 			user_task.workflow_exec.data  = {**user_task.workflow_exec.data, **task_exec.data}
+			user_task.workflow_exec.data = {**user_task.workflow_exec.data, **user_task.data}
 			user_task.save(), user_task.workflow_exec.save()
 			start_task.send(sender=None, task_exec=task_exec)
 			print("Form valid")

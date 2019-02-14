@@ -10,12 +10,17 @@ class WorkflowExec(Model):
 	workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE)
 	state = models.IntegerField(choices = states, default=1)
 	data = JSONField()
+	def __str__(self):
+		return self.workflow.name+": "+self.workflow.description
 
 class TaskExec(Model):
 	workflow_exec = models.ForeignKey(WorkflowExec, on_delete=models.CASCADE)
 	task = models.ForeignKey(Task, on_delete=models.CASCADE)
 	state = models.IntegerField(choices= states, default=1)
 	data = JSONField()
+
+	def __str__(self):
+		return self.task.name+": "+self.task.description
 
 class Worklist(Model):
 	task = models.ForeignKey(TaskExec, on_delete=models.CASCADE)
